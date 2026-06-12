@@ -1,0 +1,36 @@
+{
+  "workspace": [
+    "./packages/app",
+    "./packages/daemon",
+    "./packages/shared-types"
+  ],
+  "tasks": {
+    "dev": "deno task dev:app & deno task dev:daemon",
+    "dev:app": "deno task --cwd packages/app dev",
+    "dev:daemon": "deno task --cwd packages/daemon dev",
+    "fmt": "deno fmt",
+    "lint": "deno lint",
+    "check": "deno check packages/app/src/main.ts packages/daemon/src/main.ts packages/shared-types/src/mod.ts"
+  },
+  "fmt": {
+    "include": [
+      "packages/"
+    ],
+    "useTabs": false,
+    "lineWidth": 100,
+    "indentWidth": 2,
+    "semiColons": true,
+    "singleQuote": false,
+    "proseWrap": "preserve"
+  },
+  "lint": {
+    "include": [
+      "packages/"
+    ],
+    "rules": {
+      "tags": [
+        "recommended"
+      ]
+    }
+  }
+}

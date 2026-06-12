@@ -1,0 +1,11 @@
+{
+  "name": "@bootc-buddy/app",
+  "version": "0.1.0",
+  "exports": "./src/main.ts",
+  "tasks": {
+    "dev": "deno run --watch src/main.ts"
+  },
+  "imports": {
+    "@sigmasd/gtk": "jsr:@sigmasd/gtk@^0.65.0"
+  }
+}
