@@ -1,8 +1,7 @@
 {
   "workspace": [
     "./packages/app",
-    "./packages/daemon",
-    "./packages/shared-types"
+    "./packages/daemon"
   ],
   "tasks": {
     "dev": "deno task dev:app & deno task dev:daemon",
@@ -10,7 +9,7 @@
     "dev:daemon": "deno task --cwd packages/daemon dev",
     "fmt": "deno fmt",
     "lint": "deno lint",
-    "check": "deno check packages/app/src/main.ts packages/daemon/src/main.ts packages/shared-types/src/mod.ts"
+    "check": "deno check packages/app/src/main.ts packages/daemon/src/main.ts"
   },
   "fmt": {
     "include": [
