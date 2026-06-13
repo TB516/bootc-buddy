@@ -1,6 +1,4 @@
-import type { ServiceInfo } from "@bootc-buddy/shared-types";
-
-const service: ServiceInfo = {
+const service = {
   name: "daemon",
   runtime: "deno",
 };
