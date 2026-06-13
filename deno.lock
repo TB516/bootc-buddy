@@ -1,27 +1,3 @@
 {
-  "version": "5",
-  "specifiers": {
-    "jsr:@sigma/deno-compat@0.23.0": "0.23.0",
-    "jsr:@sigmasd/gtk@0.65": "0.65.0"
-  },
-  "jsr": {
-    "@sigma/deno-compat@0.23.0": {
-      "integrity": "3e116e19096601c3e078311864b653a207592195ae6a3f634a45931eb1a21481"
-    },
-    "@sigmasd/gtk@0.65.0": {
-      "integrity": "b8a2eb49b07f9b79c00a4c80ad7afc704c306e69775fd4cf3f916ba38344e4b6",
-      "dependencies": [
-        "jsr:@sigma/deno-compat"
-      ]
-    }
-  },
-  "workspace": {
-    "members": {
-      "packages/app": {
-        "dependencies": [
-          "jsr:@sigmasd/gtk@0.65"
-        ]
-      }
-    }
-  }
+  "version": "5"
 }
