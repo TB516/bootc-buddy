@@ -1,4 +1,5 @@
 {
+  "nodeModulesDir": "auto",
   "workspace": [
     "./packages/app",
     "./packages/daemon"
@@ -9,7 +10,7 @@
     "dev:daemon": "deno task --cwd packages/daemon dev",
     "fmt": "deno fmt",
     "lint": "deno lint",
-    "check": "deno check packages/app/src/main.ts packages/daemon/src/main.ts"
+    "check": "deno check packages/app/src/index.tsx packages/app/src/dev.tsx packages/app/src/app.tsx packages/app/scripts/build.ts packages/daemon/src/main.ts"
   },
   "fmt": {
     "include": [
