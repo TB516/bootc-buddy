@@ -1,1 +1,1 @@
-export const appId = "dev.bootc_buddy.App";
+export const appId = "io.github.TB516.Bootc-buddy";
