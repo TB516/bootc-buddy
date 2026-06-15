@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import * as Gtk from "@gtkx/ffi/gtk";
 import { GtkApplicationWindow, GtkBox, GtkButton, GtkLabel, quit } from "@gtkx/react";
 
-export default function App() {
+export function App() {
   const [count, setCount] = useState(0);
 
   return (
