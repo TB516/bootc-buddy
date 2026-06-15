@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import { type ReactNode, useState } from "react";
 import * as Gtk from "@gtkx/ffi/gtk";
 import { GtkApplicationWindow, GtkBox, GtkButton, GtkLabel, quit } from "@gtkx/react";
 
-export function App() {
+/** Root GTKX application component. */
+export function App(): ReactNode {
   const [count, setCount] = useState(0);
 
   return (
