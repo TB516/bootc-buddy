@@ -8,9 +8,15 @@
     "dev": "deno task dev:app & deno task dev:daemon",
     "dev:app": "deno task --cwd packages/app dev",
     "dev:daemon": "deno task --cwd packages/daemon dev",
-    "fmt": "deno fmt",
-    "lint": "deno lint",
-    "check": "deno check packages/app/src/index.tsx packages/app/src/dev.tsx packages/app/src/app.tsx packages/app/scripts/build.ts packages/daemon/src/main.ts"
+    "fmt": "deno task fmt:app && deno task fmt:daemon",
+    "fmt:app": "deno task --cwd packages/app fmt",
+    "fmt:daemon": "deno task --cwd packages/daemon fmt",
+    "lint": "deno task lint:app && deno task lint:daemon",
+    "lint:app": "deno task --cwd packages/app lint",
+    "lint:daemon": "deno task --cwd packages/daemon lint",
+    "check": "deno task check:app && deno task check:daemon",
+    "check:app": "deno task --cwd packages/app check",
+    "check:daemon": "deno task --cwd packages/daemon check"
   },
   "fmt": {
     "include": [

@@ -22,6 +22,9 @@
     "start": "deno task bundle && deno run -A dist/bundle.js",
     "bundle": "deno run -A scripts/build.ts --bundle-only",
     "build": "deno run -A scripts/build.ts",
-    "check": "deno check src/index.tsx src/dev.tsx src/app.tsx scripts/build.ts"
+    "fmt": "deno fmt",
+    "lint": "deno lint && deno task lint:docs",
+    "lint:docs": "deno doc --lint src/**/*.ts src/**/*.tsx",
+    "check": "deno check src/**/*.ts src/**/*.tsx"
   }
 }
