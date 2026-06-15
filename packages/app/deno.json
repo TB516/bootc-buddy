@@ -23,7 +23,7 @@
     "build": "deno run -A scripts/build.ts",
     "fmt": "deno fmt",
     "lint": "deno lint && deno task lint:docs",
-    "lint:docs": "deno doc --lint src/**/*.ts src/**/*.tsx",
+    "lint:docs": "deno doc --lint --quiet src/**/*.ts src/**/*.tsx",
     "check": "deno check src/**/*.ts src/**/*.tsx"
   }
 }
