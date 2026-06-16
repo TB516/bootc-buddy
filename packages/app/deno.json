@@ -1,6 +1,7 @@
 {
   "name": "@bootc-buddy/app",
   "version": "0.1.0",
+  "exports": "./src/main.tsx",
   "imports": {
     "@deno/vite-plugin": "npm:@deno/vite-plugin@2.0.2",
     "@gtkx/cli": "npm:@gtkx/cli@0.21.0",
