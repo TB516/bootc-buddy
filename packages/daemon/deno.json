@@ -6,7 +6,7 @@
     "./socket": "./src/socket.ts"
   },
   "tasks": {
-    "dev": "deno run --allow-env --allow-read --allow-write --watch src/index.ts",
+    "dev": "deno run --allow-env --allow-read --allow-write --watch src/main.ts",
     "fmt": "deno fmt",
     "lint": "deno lint && deno task lint:docs",
     "lint:docs": "deno doc --lint --quiet src/**/*.ts",
