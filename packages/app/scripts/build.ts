@@ -17,7 +17,7 @@ try {
 }
 
 await buildGtkxBundle({
-  entry: resolve(Deno.cwd(), "src/index.tsx"),
+  entry: resolve(Deno.cwd(), "src/main.tsx"),
   vite: {
     root: Deno.cwd(),
     configFile: false,
