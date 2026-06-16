@@ -1,6 +1,7 @@
 {
   "deno.enable": true,
   "editor.formatOnSave": true,
+  "deno.lint": false,
   "[typescript]": {
     "editor.defaultFormatter": "denoland.vscode-deno"
   },
