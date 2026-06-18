@@ -1,26 +1,36 @@
 {
+  "name": "bootc-buddy",
+  "version": "0.1.0",
+  "exports": "./src/main.tsx",
   "nodeModulesDir": "auto",
-  "workspace": [
-    "./packages/app",
-    "./packages/daemon"
-  ],
+  "imports": {
+    "@deno/vite-plugin": "npm:@deno/vite-plugin@2.0.2",
+    "@gtkx/cli": "npm:@gtkx/cli@0.21.0",
+    "@gtkx/ffi": "npm:@gtkx/ffi@0.21.0",
+    "@gtkx/native": "npm:@gtkx/native@0.21.0",
+    "@gtkx/native-linux-x64": "npm:@gtkx/native-linux-x64@0.21.0",
+    "@gtkx/react": "npm:@gtkx/react@0.21.0",
+    "@types/react": "npm:@types/react@19.2.17",
+    "react": "npm:react@19.2.7",
+    "vite": "npm:vite@8.0.16"
+  },
+  "compilerOptions": {
+    "jsx": "react-jsx"
+  },
   "tasks": {
-    "dev": "deno task dev:app & deno task dev:daemon",
-    "dev:app": "deno task --cwd packages/app dev",
-    "dev:daemon": "deno task --cwd packages/daemon dev",
-    "fmt": "deno task fmt:app && deno task fmt:daemon",
-    "fmt:app": "deno task --cwd packages/app fmt",
-    "fmt:daemon": "deno task --cwd packages/daemon fmt",
-    "lint": "deno task lint:app && deno task lint:daemon",
-    "lint:app": "deno task --cwd packages/app lint",
-    "lint:daemon": "deno task --cwd packages/daemon lint",
-    "check": "deno task check:app && deno task check:daemon",
-    "check:app": "deno task --cwd packages/app check",
-    "check:daemon": "deno task --cwd packages/daemon check"
+    "dev": "deno run -A @gtkx/cli dev src/dev.tsx",
+    "start": "deno task bundle && deno run -A dist/bundle/bundle.js",
+    "bundle": "deno run -A scripts/build.ts --bundle-only",
+    "build": "deno run -A scripts/build.ts",
+    "fmt": "deno fmt",
+    "lint": "deno lint && deno task lint:docs",
+    "lint:docs": "deno doc --lint --quiet src/**/*.ts src/**/*.tsx",
+    "check": "deno check src/**/*.ts src/**/*.tsx"
   },
   "fmt": {
     "include": [
-      "packages/"
+      "src/",
+      "scripts/"
     ],
     "useTabs": false,
     "lineWidth": 100,
@@ -31,7 +41,8 @@
   },
   "lint": {
     "include": [
-      "packages/"
+      "src/",
+      "scripts/"
     ],
     "rules": {
       "tags": [
