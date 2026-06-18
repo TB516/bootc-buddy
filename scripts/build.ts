@@ -1,6 +1,7 @@
 import deno from "@deno/vite-plugin";
 import { build as buildGtkxBundle } from "@gtkx/cli";
 import { resolve } from "node:path";
+import { t } from "try";
 
 const bundleOnly = Deno.args.includes("--bundle-only");
 const distDir = "dist";
@@ -9,12 +10,9 @@ const bundlePath = `${bundleDir}/bundle.js`;
 const nativePath = `${bundleDir}/gtkx.node`;
 const executablePath = `${distDir}/bootc-buddy-app`;
 
-try {
-  await Deno.remove(distDir, { recursive: true });
-} catch (error) {
-  if (!(error instanceof Deno.errors.NotFound)) {
-    throw error;
-  }
+const removeDist = await t(() => Deno.remove(distDir, { recursive: true }));
+if (!removeDist.ok && !(removeDist.error instanceof Deno.errors.NotFound)) {
+  throw removeDist.error;
 }
 
 await buildGtkxBundle({

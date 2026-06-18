@@ -12,6 +12,7 @@
     "@gtkx/react": "npm:@gtkx/react@0.21.0",
     "@types/react": "npm:@types/react@19.2.17",
     "react": "npm:react@19.2.7",
+    "try": "npm:try@1.0.3",
     "vite": "npm:vite@8.0.16"
   },
   "compilerOptions": {
