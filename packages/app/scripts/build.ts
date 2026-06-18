@@ -4,8 +4,9 @@ import { resolve } from "node:path";
 
 const bundleOnly = Deno.args.includes("--bundle-only");
 const distDir = "dist";
-const bundlePath = `${distDir}/bundle.js`;
-const nativePath = `${distDir}/gtkx.node`;
+const bundleDir = `${distDir}/bundle`;
+const bundlePath = `${bundleDir}/bundle.js`;
+const nativePath = `${bundleDir}/gtkx.node`;
 const executablePath = `${distDir}/bootc-buddy-app`;
 
 try {
@@ -21,6 +22,9 @@ await buildGtkxBundle({
   vite: {
     root: Deno.cwd(),
     configFile: false,
+    build: {
+      outDir: bundleDir,
+    },
     plugins: [
       deno(),
     ],
@@ -41,7 +45,7 @@ const compile = new Deno.Command(Deno.execPath(), {
     "--no-check",
     "--node-modules-dir=none",
     "--include",
-    nativePath,
+    bundleDir,
     "--output",
     executablePath,
     bundlePath,
@@ -54,9 +58,6 @@ const status = await compile.spawn().status;
 if (!status.success) {
   throw new Error(`deno compile failed with exit code ${status.code}`);
 }
-
-await Deno.remove(bundlePath);
-await Deno.remove(nativePath);
 
 async function assertFreshFile(path: string) {
   const stat = await Deno.stat(path);

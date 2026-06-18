@@ -18,7 +18,7 @@
   },
   "tasks": {
     "dev": "deno run -A @gtkx/cli dev src/dev.tsx",
-    "start": "deno task bundle && deno run -A dist/bundle.js",
+    "start": "deno task bundle && deno run -A dist/bundle/bundle.js",
     "bundle": "deno run -A scripts/build.ts --bundle-only",
     "build": "deno run -A scripts/build.ts",
     "fmt": "deno fmt",
