@@ -8,6 +8,13 @@ import {
 } from "../errors.ts";
 import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts";
 
+/**
+ * Run a `bootc` command as root through `pkexec`.
+ *
+ * The provided arguments are appended after `bootc`, so an empty argument list
+ * runs `pkexec bootc`. Successful commands return the captured exit code,
+ * stdout, and stderr from the host command.
+ */
 export function runBootcCommandEffect(
   args: readonly string[],
 ): Effect.Effect<
