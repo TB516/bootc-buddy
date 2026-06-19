@@ -1,26 +1,40 @@
-import { z } from "zod";
+import { Schema } from "effect";
 import { bootcDeploymentSchema } from "./deployment.ts";
 import { bootcImageReferenceSchema } from "./image-reference.ts";
 
-/** Schema for `bootc status --format=json` output. */
-export const bootcStatusSchema = z.object({
-  apiVersion: z.string(),
-  kind: z.literal("BootcHost"),
-  metadata: z.object({
-    name: z.string(),
-  }).passthrough(),
-  spec: z.object({
-    image: bootcImageReferenceSchema.nullable(),
-    bootOrder: z.string().optional(),
-  }).passthrough(),
-  status: z.object({
-    staged: bootcDeploymentSchema.nullable(),
-    booted: bootcDeploymentSchema.nullable(),
-    rollback: bootcDeploymentSchema.nullable().optional(),
-    rollbackQueued: z.boolean().optional(),
-    type: z.string().nullable().optional(),
-  }).passthrough(),
-}).passthrough();
+const bootcStatusSchema_ = Schema.StructWithRest(
+  Schema.Struct({
+    apiVersion: Schema.String,
+    kind: Schema.Literal("BootcHost"),
+    metadata: Schema.StructWithRest(
+      Schema.Struct({
+        name: Schema.String,
+      }),
+      [Schema.Record(Schema.String, Schema.Unknown)],
+    ),
+    spec: Schema.StructWithRest(
+      Schema.Struct({
+        image: Schema.NullOr(bootcImageReferenceSchema),
+        bootOrder: Schema.optional(Schema.String),
+      }),
+      [Schema.Record(Schema.String, Schema.Unknown)],
+    ),
+    status: Schema.StructWithRest(
+      Schema.Struct({
+        staged: Schema.NullOr(bootcDeploymentSchema),
+        booted: Schema.NullOr(bootcDeploymentSchema),
+        rollback: Schema.optional(Schema.NullOr(bootcDeploymentSchema)),
+        rollbackQueued: Schema.optional(Schema.Boolean),
+        type: Schema.optional(Schema.NullOr(Schema.String)),
+      }),
+      [Schema.Record(Schema.String, Schema.Unknown)],
+    ),
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
+
+/** @ignore */
+export const bootcStatusSchema = bootcStatusSchema_;
 
 /** Parsed and validated response from `bootc status --format=json`. */
-export type BootcStatus = z.infer<typeof bootcStatusSchema>;
+export type BootcStatus = typeof bootcStatusSchema.Type;

@@ -1,64 +1,60 @@
-/** Error thrown when a command cannot be started for a non-standard reason. */
-export class CommandStartError extends Error {
-  /** Wrapped underlying cause. */
-  override readonly cause?: unknown;
-  /** Command that could not be started. */
-  readonly command: readonly string[];
+import { Data } from "effect";
 
-  constructor(
-    command: readonly string[],
-    cause?: unknown,
-  ) {
-    super(`${command.join(" ")} could not be started`, { cause });
-    this.name = "CommandStartError";
-    this.cause = cause;
-    this.command = command;
-  }
-}
-
-/** Error thrown when a command exits unsuccessfully. */
-export class CommandExitError extends Error {
-  /** Wrapped underlying cause. */
-  override readonly cause?: unknown;
-  /** Command that exited unsuccessfully. */
+/**
+ * The process runtime could not find the executable to start.
+ *
+ * @ignore Internal cross-file error type; not part of the public bootc API.
+ */
+export class CommandNotFoundError extends Data.TaggedError("CommandNotFoundError")<{
   readonly command: readonly string[];
-  /** Process exit code. */
+  readonly executable: string;
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * The process runtime was denied permission to start the executable.
+ *
+ * @ignore Internal cross-file error type; not part of the public bootc API.
+ */
+export class CommandPermissionDeniedError extends Data.TaggedError("CommandPermissionDeniedError")<{
+  readonly command: readonly string[];
+  readonly executable: string;
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * The executable failed to start for a reason other than missing file or permission denial.
+ *
+ * @ignore Internal cross-file error type; not part of the public bootc API.
+ */
+export class CommandStartError extends Data.TaggedError("CommandStartError")<{
+  readonly command: readonly string[];
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
+
+/**
+ * The command started but exited with a non-zero status code.
+ *
+ * @ignore Internal cross-file error type; not part of the public bootc API.
+ */
+export class CommandExitError extends Data.TaggedError("CommandExitError")<{
+  readonly command: readonly string[];
   readonly code: number;
-  /** Trimmed standard output. */
   readonly stdout: string;
-  /** Trimmed standard error. */
   readonly stderr: string;
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
 
-  constructor(
-    command: readonly string[],
-    code: number,
-    stdout: string,
-    stderr: string,
-    cause?: unknown,
-  ) {
-    super(
-      `${command.join(" ")} failed with exit code ${code}: ${stderr || stdout || "no output"}`,
-    );
-    this.name = "CommandExitError";
-    this.cause = cause;
-    this.command = command;
-    this.code = code;
-    this.stdout = stdout;
-    this.stderr = stderr;
-  }
-}
-
-/** Error thrown when bootc returns a response the app cannot use. */
-export class BootcInvalidResponseError extends Error {
-  /** Wrapped underlying cause. */
-  override readonly cause?: unknown;
-
-  constructor(
-    message: string,
-    cause?: unknown,
-  ) {
-    super(message, { cause });
-    this.name = "BootcInvalidResponseError";
-    this.cause = cause;
-  }
-}
+/**
+ * bootc returned JSON that could not be parsed or did not match the expected schema.
+ *
+ * @ignore Internal cross-file error type; not part of the public bootc API.
+ */
+export class BootcInvalidResponseError extends Data.TaggedError("BootcInvalidResponseError")<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
