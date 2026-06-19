@@ -1,37 +1,77 @@
-import { t } from "try";
-import * as errors from "../errors.ts";
-import { runBootcCommand } from "../runtime/mod.ts";
+import { Effect, Schema } from "effect";
+import type * as ChildProcessSpawner from "effect/unstable/process/ChildProcessSpawner";
+import {
+  BootcInvalidResponseError,
+  CommandExitError,
+  CommandNotFoundError,
+  CommandPermissionDeniedError,
+  CommandStartError,
+} from "../errors.ts";
+import { type BootcCommandResult } from "../result.ts";
+import { runBootcCommandEffect } from "../runtime/run-bootc-command.ts";
+import { nodeProcessLayer } from "../runtime/node-process-layer.ts";
 import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
 
-export type { BootcStatus } from "../schemas/status.ts";
-
 /**
- * Run `bootc status --format=json` as root through polkit and validate the response.
+ * Read the current bootc host status.
  *
- * @throws {Deno.errors.NotFound} When `pkexec` or `flatpak-spawn` is missing.
- * @throws {Deno.errors.PermissionDenied} When starting `pkexec` or `flatpak-spawn` is denied.
- * @throws {errors.CommandStartError} When the command cannot be started for another reason.
- * @throws {errors.CommandExitError} When the `pkexec bootc status --format=json` command exits unsuccessfully.
- * @throws {errors.BootcInvalidResponseError} When `bootc` returns JSON the app cannot use.
+ * Runs `bootc status --format=json`, parses the returned JSON, and validates
+ * it against the expected status schema.
+ *
+ * @returns A result containing the parsed and validated bootc status response,
+ * or public error details when an expected command failure occurs.
  */
-export async function getBootcStatus(): Promise<BootcStatus> {
-  const output = await runBootcCommand(["status", "--format=json"]);
+export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
+  return await Effect.runPromise(
+    getBootcStatusEffect().pipe(
+      Effect.match({
+        onFailure: (cause): BootcCommandResult<BootcStatus> => ({
+          ok: false,
+          message: cause.message,
+          error: {
+            name: cause._tag,
+            message: cause.message,
+            cause,
+          },
+        }),
+        onSuccess: (body): BootcCommandResult<BootcStatus> => ({
+          ok: true,
+          body,
+        }),
+      }),
+      Effect.provide(nodeProcessLayer),
+    ),
+  );
+}
 
-  const parsed = t(() => JSON.parse(output.stdout) as unknown);
-  if (!parsed.ok) {
-    throw new errors.BootcInvalidResponseError(
-      "bootc status --format=json returned invalid JSON",
-      parsed.error,
+export function getBootcStatusEffect(): Effect.Effect<
+  BootcStatus,
+  | BootcInvalidResponseError
+  | CommandExitError
+  | CommandNotFoundError
+  | CommandPermissionDeniedError
+  | CommandStartError,
+  ChildProcessSpawner.ChildProcessSpawner
+> {
+  return Effect.gen(function* () {
+    const output = yield* runBootcCommandEffect(["status", "--format=json"]);
+
+    const parsed = yield* Effect.try({
+      try: (): unknown => JSON.parse(output.stdout) as unknown,
+      catch: (cause): BootcInvalidResponseError =>
+        new BootcInvalidResponseError({
+          message: "bootc status --format=json returned invalid JSON",
+          cause,
+        }),
+    });
+
+    return yield* Schema.decodeUnknownEffect(bootcStatusSchema)(parsed).pipe(
+      Effect.mapError((cause) =>
+        new BootcInvalidResponseError({
+          message: "bootc status --format=json returned an unexpected response shape",
+          cause,
+        })
+      ),
     );
-  }
-
-  const result = bootcStatusSchema.safeParse(parsed.value);
-  if (!result.success) {
-    throw new errors.BootcInvalidResponseError(
-      "bootc status --format=json returned an unexpected response shape",
-      result.error,
-    );
-  }
-
-  return result.data;
+  });
 }

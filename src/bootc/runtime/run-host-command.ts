@@ -1,50 +1,93 @@
-import { t } from "try";
-import * as errors from "../errors.ts";
-import { type CommandOutput } from "./command-output.ts";
-import { isFlatpakSandbox } from "./is-flatpak-sandbox.ts";
+import { Effect, Stream } from "effect";
+import type * as PlatformError from "effect/PlatformError";
+import * as ChildProcess from "effect/unstable/process/ChildProcess";
+import * as ChildProcessSpawner from "effect/unstable/process/ChildProcessSpawner";
+import {
+  CommandNotFoundError,
+  CommandPermissionDeniedError,
+  CommandStartError,
+} from "../errors.ts";
 
 const textDecoder = new TextDecoder();
 
-/**
- * Run a command locally or through `flatpak-spawn --host` when sandboxed.
- *
- * @throws {TypeError} When the command is empty.
- * @throws {Deno.errors.NotFound} When the executable is missing.
- * @throws {Deno.errors.PermissionDenied} When starting the executable is denied.
- * @throws {errors.CommandStartError} When the executable cannot be started for another reason.
- */
-export async function runHostCommand(args: readonly string[]): Promise<CommandOutput> {
-  const command = await isFlatpakSandbox() ? ["flatpak-spawn", "--host", ...args] : [...args];
-  const [executable, ...commandArgs] = command;
+export type HostCommand = "true" | "bootc" | "pkexec";
 
-  if (!executable) {
-    throw new TypeError("cannot run an empty command");
+export type HostCommandArgs = readonly [HostCommand, ...string[]];
+
+export interface CommandOutput {
+  readonly code: number;
+  readonly stdout: string;
+  readonly stderr: string;
+}
+
+/** Run a host command through Flatpak and capture its exit code, stdout, and stderr. */
+export function runHostCommandEffect(
+  args: HostCommandArgs,
+): Effect.Effect<
+  CommandOutput,
+  CommandNotFoundError | CommandPermissionDeniedError | CommandStartError,
+  ChildProcessSpawner.ChildProcessSpawner
+> {
+  const command = ["flatpak-spawn", "--host", ...args] as const;
+
+  return Effect.scoped(
+    Effect.gen(function* () {
+      const handle = yield* ChildProcess.make("flatpak-spawn", ["--host", ...args], {
+        stdin: "ignore",
+        stdout: "pipe",
+        stderr: "pipe",
+      });
+
+      const [exitCode, stdout, stderr] = yield* Effect.all(
+        [
+          handle.exitCode,
+          collectOutput(handle.stdout),
+          collectOutput(handle.stderr),
+        ],
+        { concurrency: "unbounded" },
+      );
+
+      return {
+        code: Number(exitCode),
+        stdout: stdout.trim(),
+        stderr: stderr.trim(),
+      };
+    }),
+  ).pipe(Effect.mapError((cause) => commandStartError(command, cause)));
+}
+
+function collectOutput(
+  stream: Stream.Stream<Uint8Array, PlatformError.PlatformError>,
+): Effect.Effect<string, PlatformError.PlatformError> {
+  return Stream.runCollect(stream).pipe(Effect.map(decodeChunks));
+}
+
+function decodeChunks(chunks: ReadonlyArray<Uint8Array>): string {
+  return textDecoder.decode(Buffer.concat(chunks));
+}
+
+function commandStartError(command: readonly string[], cause: PlatformError.PlatformError) {
+  if (cause.reason._tag === "NotFound") {
+    return new CommandNotFoundError({
+      command,
+      executable: command[0] ?? "",
+      message: `${command[0] ?? "command"} is not available`,
+      cause,
+    });
   }
 
-  const output = await t(() =>
-    new Deno.Command(executable, {
-      args: commandArgs,
-      stdin: "null",
-      stdout: "piped",
-      stderr: "piped",
-    }).output()
-  );
-
-  if (!output.ok) {
-    if (output.error instanceof Deno.errors.NotFound) {
-      throw new Deno.errors.NotFound(`${executable} is not available`);
-    }
-
-    if (output.error instanceof Deno.errors.PermissionDenied) {
-      throw new Deno.errors.PermissionDenied(`${executable} could not be started`);
-    }
-
-    throw new errors.CommandStartError(command, output.error);
+  if (cause.reason._tag === "PermissionDenied") {
+    return new CommandPermissionDeniedError({
+      command,
+      executable: command[0] ?? "",
+      message: `${command[0] ?? "command"} could not be started`,
+      cause,
+    });
   }
 
-  return {
-    code: output.value.code,
-    stdout: textDecoder.decode(output.value.stdout).trim(),
-    stderr: textDecoder.decode(output.value.stderr).trim(),
-  };
+  return new CommandStartError({
+    command,
+    message: `${command.join(" ")} could not be started`,
+    cause,
+  });
 }

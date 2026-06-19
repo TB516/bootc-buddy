@@ -1,32 +1,40 @@
-import { t } from "try";
-import * as errors from "../errors.ts";
-import { type CommandOutput } from "./command-output.ts";
-import { runHostCommand } from "./run-host-command.ts";
+import { Effect } from "effect";
+import type * as ChildProcessSpawner from "effect/unstable/process/ChildProcessSpawner";
+import {
+  CommandExitError,
+  CommandNotFoundError,
+  CommandPermissionDeniedError,
+  CommandStartError,
+} from "../errors.ts";
+import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts";
 
-/**
- * Run a `bootc` command as root through polkit.
- *
- * @throws {Deno.errors.NotFound} When `pkexec` or `flatpak-spawn` is missing.
- * @throws {Deno.errors.PermissionDenied} When starting `pkexec` or `flatpak-spawn` is denied.
- * @throws {errors.CommandStartError} When the command cannot be started for another reason.
- * @throws {errors.CommandExitError} When the `pkexec bootc` command exits unsuccessfully.
- */
-export async function runBootcCommand(args: readonly string[]): Promise<CommandOutput> {
-  const command = ["bootc", ...args];
-  const output = await t(() => runHostCommand(["pkexec", ...command]));
+export function runBootcCommandEffect(
+  args: readonly string[],
+): Effect.Effect<
+  CommandOutput,
+  | CommandExitError
+  | CommandNotFoundError
+  | CommandPermissionDeniedError
+  | CommandStartError,
+  ChildProcessSpawner.ChildProcessSpawner
+> {
+  const command = ["bootc", ...args] as const;
 
-  if (!output.ok) {
-    throw output.error;
-  }
+  return Effect.gen(function* () {
+    const output = yield* runHostCommandEffect(["pkexec", ...command]);
 
-  if (output.value.code !== 0) {
-    throw new errors.CommandExitError(
-      command,
-      output.value.code,
-      output.value.stdout,
-      output.value.stderr,
-    );
-  }
+    if (output.code !== 0) {
+      return yield* new CommandExitError({
+        command,
+        code: output.code,
+        stdout: output.stdout,
+        stderr: output.stderr,
+        message: `${command.join(" ")} failed with exit code ${output.code}: ${
+          output.stderr || output.stdout || "no output"
+        }`,
+      });
+    }
 
-  return output.value;
+    return output;
+  });
 }

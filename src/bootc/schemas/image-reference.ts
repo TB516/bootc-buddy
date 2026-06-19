@@ -1,10 +1,12 @@
-import { z } from "zod";
+import { Schema } from "effect";
 
-/** Schema for a bootc image reference. */
-export const bootcImageReferenceSchema = z.object({
-  image: z.string(),
-  transport: z.string(),
-}).passthrough();
+const bootcImageReferenceSchema_ = Schema.StructWithRest(
+  Schema.Struct({
+    image: Schema.String,
+    transport: Schema.String,
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-/** Bootc image reference. */
-export type BootcImageReference = z.infer<typeof bootcImageReferenceSchema>;
+/** @ignore */
+export const bootcImageReferenceSchema = bootcImageReferenceSchema_;

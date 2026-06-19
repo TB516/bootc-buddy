@@ -1,26 +1,34 @@
-import { z } from "zod";
+import { Schema } from "effect";
 import { bootcImageReferenceSchema } from "./image-reference.ts";
 
-const deploymentImageSchema = z.object({
-  image: bootcImageReferenceSchema,
-  version: z.string().nullable().optional(),
-  timestamp: z.string().nullable().optional(),
-  imageDigest: z.string().nullable().optional(),
-}).passthrough();
+const deploymentImageSchema = Schema.StructWithRest(
+  Schema.Struct({
+    image: bootcImageReferenceSchema,
+    version: Schema.optional(Schema.NullOr(Schema.String)),
+    timestamp: Schema.optional(Schema.NullOr(Schema.String)),
+    imageDigest: Schema.optional(Schema.NullOr(Schema.String)),
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-const ostreeDeploymentSchema = z.object({
-  checksum: z.string().optional(),
-  deploySerial: z.number().int().optional(),
-}).passthrough();
+const ostreeDeploymentSchema = Schema.StructWithRest(
+  Schema.Struct({
+    checksum: Schema.optional(Schema.String),
+    deploySerial: Schema.optional(Schema.Int),
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-/** Schema for a bootc deployment slot. */
-export const bootcDeploymentSchema = z.object({
-  image: deploymentImageSchema.nullable().optional(),
-  cachedUpdate: z.unknown().nullable().optional(),
-  incompatible: z.boolean().optional(),
-  pinned: z.boolean().optional(),
-  ostree: ostreeDeploymentSchema.optional(),
-}).passthrough();
+const bootcDeploymentSchema_ = Schema.StructWithRest(
+  Schema.Struct({
+    image: Schema.optional(Schema.NullOr(deploymentImageSchema)),
+    cachedUpdate: Schema.optional(Schema.NullOr(Schema.Unknown)),
+    incompatible: Schema.optional(Schema.Boolean),
+    pinned: Schema.optional(Schema.Boolean),
+    ostree: Schema.optional(ostreeDeploymentSchema),
+  }),
+  [Schema.Record(Schema.String, Schema.Unknown)],
+);
 
-/** Bootc deployment slot. */
-export type BootcDeployment = z.infer<typeof bootcDeploymentSchema>;
+/** @ignore */
+export const bootcDeploymentSchema = bootcDeploymentSchema_;
