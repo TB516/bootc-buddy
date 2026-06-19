@@ -1,9 +1,9 @@
 import { Data } from "effect";
 
 /**
- * The process runtime could not find the executable to start.
+ * Raised when the process runtime cannot find the executable to start.
  *
- * @ignore Internal cross-file error type; not part of the public bootc API.
+ * @internal
  */
 export class CommandNotFoundError extends Data.TaggedError("CommandNotFoundError")<{
   readonly command: readonly string[];
@@ -13,9 +13,9 @@ export class CommandNotFoundError extends Data.TaggedError("CommandNotFoundError
 }> {}
 
 /**
- * The process runtime was denied permission to start the executable.
+ * Raised when the process runtime is denied permission to start the executable.
  *
- * @ignore Internal cross-file error type; not part of the public bootc API.
+ * @internal
  */
 export class CommandPermissionDeniedError extends Data.TaggedError("CommandPermissionDeniedError")<{
   readonly command: readonly string[];
@@ -25,9 +25,10 @@ export class CommandPermissionDeniedError extends Data.TaggedError("CommandPermi
 }> {}
 
 /**
- * The executable failed to start for a reason other than missing file or permission denial.
+ * Raised when an executable fails to start for a reason other than a missing
+ * executable or permission denial.
  *
- * @ignore Internal cross-file error type; not part of the public bootc API.
+ * @internal
  */
 export class CommandStartError extends Data.TaggedError("CommandStartError")<{
   readonly command: readonly string[];
@@ -36,9 +37,10 @@ export class CommandStartError extends Data.TaggedError("CommandStartError")<{
 }> {}
 
 /**
- * The command started but exited with a non-zero status code.
+ * Raised when a command starts successfully but exits with a non-zero status
+ * code.
  *
- * @ignore Internal cross-file error type; not part of the public bootc API.
+ * @internal
  */
 export class CommandExitError extends Data.TaggedError("CommandExitError")<{
   readonly command: readonly string[];
@@ -50,9 +52,10 @@ export class CommandExitError extends Data.TaggedError("CommandExitError")<{
 }> {}
 
 /**
- * bootc returned JSON that could not be parsed or did not match the expected schema.
+ * Raised when bootc returns JSON that cannot be parsed or does not match the
+ * expected schema.
  *
- * @ignore Internal cross-file error type; not part of the public bootc API.
+ * @internal
  */
 export class BootcInvalidResponseError extends Data.TaggedError("BootcInvalidResponseError")<{
   readonly message: string;
