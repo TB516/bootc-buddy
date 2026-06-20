@@ -19,7 +19,7 @@ import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
  * it against the expected status schema.
  *
  * @returns A result containing the parsed and validated bootc status response,
- * or public error details when an expected command failure occurs.
+ *   or public error details when an expected command failure occurs.
  */
 export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
   return await Effect.runPromise(
@@ -66,11 +66,12 @@ export function getBootcStatusEffect(): Effect.Effect<
     });
 
     return yield* Schema.decodeUnknownEffect(bootcStatusSchema)(parsed).pipe(
-      Effect.mapError((cause) =>
-        new BootcInvalidResponseError({
-          message: "bootc status --format=json returned an unexpected response shape",
-          cause,
-        })
+      Effect.mapError(
+        (cause): BootcInvalidResponseError =>
+          new BootcInvalidResponseError({
+            message: "bootc status --format=json returned an unexpected response shape",
+            cause,
+          }),
       ),
     );
   });

@@ -18,14 +18,14 @@ export interface BootcCommandError {
  */
 export type BootcCommandResult<Body> =
   | {
-    readonly ok: true;
-    readonly body: Body;
-    readonly message?: string;
-    readonly error?: undefined;
-  }
+      readonly ok: true;
+      readonly body: Body;
+      readonly message?: string;
+      readonly error?: undefined;
+    }
   | {
-    readonly ok: false;
-    readonly body?: undefined;
-    readonly message: string;
-    readonly error: BootcCommandError;
-  };
+      readonly ok: false;
+      readonly body?: undefined;
+      readonly message: string;
+      readonly error: BootcCommandError;
+    };
