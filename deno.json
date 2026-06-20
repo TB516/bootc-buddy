@@ -4,7 +4,6 @@
   "exports": "./src/main.tsx",
   "nodeModulesDir": "auto",
   "imports": {
-    "@deno/vite-plugin": "npm:@deno/vite-plugin@2.0.2",
     "@gtkx/cli": "npm:@gtkx/cli@0.21.0",
     "@gtkx/ffi": "npm:@gtkx/ffi@0.21.0",
     "@gtkx/native": "npm:@gtkx/native@0.21.0",
@@ -19,19 +18,23 @@
     "jsx": "react-jsx"
   },
   "tasks": {
-    "dev": "deno run -A @gtkx/cli dev src/dev.tsx",
-    "start": "deno task bundle && deno run -A dist/bundle/bundle.js",
-    "bundle": "deno run -A scripts/build.ts --bundle-only",
+    "dev": "deno run -A scripts/dev.ts",
+    "compile": "deno run -A @gtkx/cli build src/main.tsx && deno compile -P --no-check --node-modules-dir=none --output=bin/bootc-buddy dist/bundle.js",
     "build": "deno run -A scripts/build.ts",
     "fmt": "deno fmt",
     "lint": "deno lint && deno task lint:docs",
     "lint:docs": "deno doc --lint --quiet src/**/*.ts src/**/*.tsx",
     "check": "deno check src/**/*.ts src/**/*.tsx"
   },
+  "compile": {
+    "permissions": { "all": true },
+    "include": ["dist"]
+  },
   "fmt": {
     "include": [
       "src/",
-      "scripts/"
+      "scripts/",
+      "vite.config.ts"
     ],
     "useTabs": false,
     "lineWidth": 100,
@@ -43,7 +46,8 @@
   "lint": {
     "include": [
       "src/",
-      "scripts/"
+      "scripts/",
+      "vite.config.ts"
     ],
     "rules": {
       "tags": [
