@@ -24,9 +24,7 @@ let validRuntime: Promise<boolean> | undefined;
  * @returns Whether the current runtime can execute the required host commands.
  */
 export function isValidRuntime(): Promise<boolean> {
-  validRuntime ??= Effect.runPromise(
-    isValidRuntimeEffect().pipe(Effect.provide(nodeProcessLayer)),
-  );
+  validRuntime ??= Effect.runPromise(isValidRuntimeEffect().pipe(Effect.provide(nodeProcessLayer)));
   return validRuntime;
 }
 
@@ -60,8 +58,7 @@ function commandStartedAndExitedZero(
     Effect.map((output: CommandOutput): boolean => output.code === 0),
     Effect.catchTags({
       CommandNotFoundError: (_error: CommandNotFoundError) => Effect.succeed(false),
-      CommandPermissionDeniedError: (_error: CommandPermissionDeniedError) =>
-        Effect.succeed(false),
+      CommandPermissionDeniedError: (_error: CommandPermissionDeniedError) => Effect.succeed(false),
       CommandStartError: (_error: CommandStartError) => Effect.succeed(false),
     }),
   );

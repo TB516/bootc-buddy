@@ -14,15 +14,15 @@ import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts"
  * The provided arguments are appended after `bootc`, so an empty argument list
  * runs `pkexec bootc`. Successful commands return the captured exit code,
  * stdout, and stderr from the host command.
+ *
+ * @param args The arguments to pass to `bootc`.
+ * @returns An Effect that captures successful command output or fails with a command error.
  */
 export function runBootcCommandEffect(
   args: readonly string[],
 ): Effect.Effect<
   CommandOutput,
-  | CommandExitError
-  | CommandNotFoundError
-  | CommandPermissionDeniedError
-  | CommandStartError,
+  CommandExitError | CommandNotFoundError | CommandPermissionDeniedError | CommandStartError,
   ChildProcessSpawner.ChildProcessSpawner
 > {
   const command = ["bootc", ...args] as const;

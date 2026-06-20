@@ -20,7 +20,12 @@ export interface CommandOutput {
   readonly stderr: string;
 }
 
-/** Run a host command through Flatpak and capture its exit code, stdout, and stderr. */
+/**
+ * Run a host command through Flatpak and capture its exit code, stdout, and stderr.
+ *
+ * @param args The host command and arguments to pass after `flatpak-spawn --host`.
+ * @returns An Effect that starts the command and captures its output.
+ */
 export function runHostCommandEffect(
   args: HostCommandArgs,
 ): Effect.Effect<
@@ -39,11 +44,7 @@ export function runHostCommandEffect(
       });
 
       const [exitCode, stdout, stderr] = yield* Effect.all(
-        [
-          handle.exitCode,
-          collectOutput(handle.stdout),
-          collectOutput(handle.stderr),
-        ],
+        [handle.exitCode, collectOutput(handle.stdout), collectOutput(handle.stderr)],
         { concurrency: "unbounded" },
       );
 
@@ -66,7 +67,10 @@ function decodeChunks(chunks: ReadonlyArray<Uint8Array>): string {
   return textDecoder.decode(Buffer.concat(chunks));
 }
 
-function commandStartError(command: readonly string[], cause: PlatformError.PlatformError) {
+function commandStartError(
+  command: readonly string[],
+  cause: PlatformError.PlatformError,
+): CommandNotFoundError | CommandPermissionDeniedError | CommandStartError {
   if (cause.reason._tag === "NotFound") {
     return new CommandNotFoundError({
       command,

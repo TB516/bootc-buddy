@@ -28,12 +28,16 @@ type RuntimeViewState =
   | { readonly kind: "loaded"; readonly valid: boolean }
   | { readonly kind: "crashed"; readonly error: unknown };
 
-/** Root GTKX application component. */
+/**
+ * Root GTKX application component.
+ *
+ * @returns The GTKX application tree.
+ */
 export function App(): ReactNode {
   const [state, setState] = useState<StatusViewState>({ kind: "idle" });
   const [runtimeState, setRuntimeState] = useState<RuntimeViewState>({ kind: "idle" });
 
-  const refreshStatus = async () => {
+  const refreshStatus = async (): Promise<void> => {
     setState({ kind: "loading" });
 
     try {
@@ -43,7 +47,7 @@ export function App(): ReactNode {
     }
   };
 
-  const checkRuntime = async () => {
+  const checkRuntime = async (): Promise<void> => {
     setRuntimeState({ kind: "loading" });
 
     try {
@@ -53,34 +57,29 @@ export function App(): ReactNode {
     }
   };
 
-  useEffect(() => {
+  useEffect((): (() => void) => {
     let mounted = true;
 
     setState({ kind: "loading" });
     getBootcStatus()
-      .then((result) => {
+      .then((result): void => {
         if (mounted) {
           setState({ kind: "loaded", result });
         }
       })
-      .catch((error: unknown) => {
+      .catch((error: unknown): void => {
         if (mounted) {
           setState({ kind: "crashed", error });
         }
       });
 
-    return () => {
+    return (): void => {
       mounted = false;
     };
   }, []);
 
   return (
-    <GtkApplicationWindow
-      title="Bootc Buddy"
-      defaultWidth={760}
-      defaultHeight={620}
-      onClose={quit}
-    >
+    <GtkApplicationWindow title="Bootc Buddy" defaultWidth={760} defaultHeight={620} onClose={quit}>
       <GtkBox
         orientation={Gtk.Orientation.VERTICAL}
         spacing={12}
@@ -100,14 +99,14 @@ export function App(): ReactNode {
           <GtkButton
             label={state.kind === "loading" ? "Checking..." : "Refresh status"}
             sensitive={state.kind !== "loading"}
-            onClicked={() => {
+            onClicked={(): void => {
               void refreshStatus();
             }}
           />
           <GtkButton
             label={runtimeState.kind === "loading" ? "Checking..." : "Check runtime"}
             sensitive={runtimeState.kind !== "loading"}
-            onClicked={() => {
+            onClicked={(): void => {
               void checkRuntime();
             }}
           />
@@ -171,9 +170,11 @@ function RuntimeSummary({ state }: { readonly state: RuntimeViewState }): ReactN
       title={state.valid ? "Runtime check: valid" : "Runtime check: invalid"}
       tone={state.valid ? "ok" : "error"}
       compact
-      body={state.valid
-        ? "This runtime can execute the host commands needed for bootc."
-        : "This runtime cannot execute one or more required host commands. isValidRuntime() returned false."}
+      body={
+        state.valid
+          ? "This runtime can execute the host commands needed for bootc."
+          : "This runtime cannot execute one or more required host commands. isValidRuntime() returned false."
+      }
     />
   );
 }
@@ -182,9 +183,9 @@ function StatusSummary({ state }: { readonly state: StatusViewState }): ReactNod
   if (state.kind === "idle" || state.kind === "loading") {
     return (
       <GtkLabel
-        label={state.kind === "loading"
-          ? "Running bootc status --format=json..."
-          : "Not checked yet."}
+        label={
+          state.kind === "loading" ? "Running bootc status --format=json..." : "Not checked yet."
+        }
         cssClasses={["dim-label"]}
         halign={Gtk.Align.START}
         xalign={0}
@@ -207,12 +208,9 @@ function StatusSummary({ state }: { readonly state: StatusViewState }): ReactNod
       <StatusBlock
         title={`bootc status failed: ${state.result.error.name}`}
         tone="error"
-        body={[
-          state.result.message,
-          "",
-          "Error details:",
-          safeStringify(state.result.error),
-        ].join("\n")}
+        body={[state.result.message, "", "Error details:", safeStringify(state.result.error)].join(
+          "\n",
+        )}
       />
     );
   }
@@ -239,12 +237,13 @@ function StatusSummary({ state }: { readonly state: StatusViewState }): ReactNod
   );
 }
 
-function DeploymentBlock(
-  { label, deployment }: {
-    readonly label: string;
-    readonly deployment: BootcStatus["status"]["booted"];
-  },
-): ReactNode {
+function DeploymentBlock({
+  label,
+  deployment,
+}: {
+  readonly label: string;
+  readonly deployment: BootcStatus["status"]["booted"];
+}): ReactNode {
   if (deployment === null) {
     return <StatusBlock title={label} tone="neutral" body="None reported." />;
   }
@@ -272,14 +271,17 @@ function DeploymentBlock(
   );
 }
 
-function StatusBlock(
-  { title, body, tone, compact = false }: {
-    readonly title: string;
-    readonly body: string;
-    readonly tone: "ok" | "warning" | "error" | "neutral";
-    readonly compact?: boolean;
-  },
-): ReactNode {
+function StatusBlock({
+  title,
+  body,
+  tone,
+  compact = false,
+}: {
+  readonly title: string;
+  readonly body: string;
+  readonly tone: "ok" | "warning" | "error" | "neutral";
+  readonly compact?: boolean;
+}): ReactNode {
   return (
     <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={6} hexpand>
       <GtkLabel
@@ -341,7 +343,7 @@ function formatUnknownError(error: unknown): string {
 function safeStringify(value: unknown): string {
   try {
     return JSON.stringify(value, null, 2) ?? String(value);
-  } catch (_error) {
+  } catch {
     return String(value);
   }
 }

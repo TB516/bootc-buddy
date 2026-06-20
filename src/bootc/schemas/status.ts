@@ -26,10 +26,9 @@ const bootcStatusSchema_ = Schema.StructWithRest(
     spec: Schema.StructWithRest(
       Schema.Struct({
         image: Schema.NullOr(bootcImageReferenceSchema),
-        bootOrder: Schema.optional(Schema.Union([
-          Schema.Literal("default"),
-          Schema.Literal("rollback"),
-        ])),
+        bootOrder: Schema.optional(
+          Schema.Union([Schema.Literal("default"), Schema.Literal("rollback")]),
+        ),
       }),
       [Schema.Record(Schema.String, Schema.Unknown)],
     ),
