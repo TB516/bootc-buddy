@@ -1,0 +1,48 @@
+app-id: io.github.TB516.BootcBuddy
+runtime: org.gnome.Platform
+runtime-version: "50"
+sdk: org.gnome.Sdk
+command: bootc-buddy
+
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  - --talk-name=org.freedesktop.Flatpak
+
+cleanup:
+  - /bin/deno
+
+modules:
+  - name: deno
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 deno /app/bin/deno
+    sources:
+      - type: archive
+        url: https://dl.deno.land/release/v2.8.3/deno-x86_64-unknown-linux-gnu.zip
+        sha256: 30455b845ffa6082209c3590269c910ad3b7efdf28c9879afd4006c47ae54197
+
+  - name: bootc-buddy
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+      env:
+        DENO_DIR: /run/build/bootc-buddy/.deno-cache
+    build-commands:
+      - deno task compile
+      - install -Dm755 bin/bootc-buddy /app/bin/bootc-buddy
+    sources:
+      - type: dir
+        path: ../..
+        skip:
+          - .git
+          - .flatpak-build
+          - .flatpak-build-release
+          - .flatpak-builder
+          - .flatpak-deno-cache
+          - .vscode
+          - dist
+          - node_modules

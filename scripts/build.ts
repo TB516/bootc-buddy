@@ -1,65 +1,33 @@
-import deno from "@deno/vite-plugin";
-import { build as buildGtkxBundle } from "@gtkx/cli";
-import { resolve } from "node:path";
-import { t } from "try";
+const buildDir = ".flatpak-build-release";
+const manifest = "build-aux/flatpak/io.github.TB516.BootcBuddy.yml";
+const flatpakBuilder = ["run", "--command=flatpak-builder", "org.flatpak.Builder"];
+const legacyDevCache = ".flatpak-builder/build/bootc-buddy/.flatpak-deno-cache";
 
-const bundleOnly = Deno.args.includes("--bundle-only");
-const distDir = "dist";
-const bundleDir = `${distDir}/bundle`;
-const bundlePath = `${bundleDir}/bundle.js`;
-const nativePath = `${bundleDir}/gtkx.node`;
-const executablePath = `${distDir}/bootc-buddy-app`;
-
-const removeDist = await t(() => Deno.remove(distDir, { recursive: true }));
-if (!removeDist.ok && !(removeDist.error instanceof Deno.errors.NotFound)) {
-  throw removeDist.error;
+try {
+  await Deno.remove(legacyDevCache, { recursive: true });
+} catch (error) {
+  if (!(error instanceof Deno.errors.NotFound)) {
+    throw error;
+  }
 }
 
-await buildGtkxBundle({
-  entry: resolve(Deno.cwd(), "src/main.tsx"),
-  vite: {
-    root: Deno.cwd(),
-    configFile: false,
-    build: {
-      outDir: bundleDir,
-    },
-    plugins: [
-      deno(),
-    ],
-  },
-});
-
-await assertFreshFile(bundlePath);
-await assertFreshFile(nativePath);
-
-if (bundleOnly) {
-  Deno.exit(0);
-}
-
-const compile = new Deno.Command(Deno.execPath(), {
+const status = await new Deno.Command("flatpak", {
   args: [
-    "compile",
-    "-A",
-    "--no-check",
-    "--node-modules-dir=none",
-    "--include",
-    bundleDir,
-    "--output",
-    executablePath,
-    bundlePath,
+    ...flatpakBuilder,
+    "--system",
+    "--assumeyes",
+    "--disable-rofiles-fuse",
+    "--delete-build-dirs",
+    "--install-deps-from=flathub",
+    "--force-clean",
+    buildDir,
+    manifest,
   ],
+  stdin: "inherit",
   stdout: "inherit",
   stderr: "inherit",
-});
+}).spawn().status;
 
-const status = await compile.spawn().status;
 if (!status.success) {
-  throw new Error(`deno compile failed with exit code ${status.code}`);
-}
-
-async function assertFreshFile(path: string) {
-  const stat = await Deno.stat(path);
-  if (!stat.isFile) {
-    throw new Error(`Expected ${path} to be a file`);
-  }
+  Deno.exit(status.code);
 }
