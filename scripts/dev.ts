@@ -1,40 +1,46 @@
+import { spawn, spawnSync } from "node:child_process";
+import { mkdir, readdir, rm } from "node:fs/promises";
+
 const buildDir = ".flatpak-build";
 const manifest = "build-aux/flatpak/io.github.TB516.BootcBuddy.yml";
-const denoDir = `${Deno.cwd()}/${buildDir}/deno-cache`;
-const flatpakBuilder = ["run", "--command=flatpak-builder", "org.flatpak.Builder"];
+const pnpmHome = `${process.cwd()}/${buildDir}/pnpm-home`;
 
-async function cleanupRofiles() {
-  try {
-    for await (const entry of Deno.readDir(".flatpak-builder/rofiles")) {
-      await new Deno.Command("fusermount3", {
-        args: ["-uz", `.flatpak-builder/rofiles/${entry.name}`],
-        stdout: "null",
-        stderr: "null",
-      }).spawn().status;
-    }
-  } catch (error) {
-    if (!(error instanceof Deno.errors.NotFound)) {
-      throw error;
-    }
-  }
+async function cleanupRofiles(): Promise<void> {
+  let entries: string[];
 
   try {
-    await Deno.remove(".flatpak-builder/rofiles", { recursive: true });
+    entries = await readdir(".flatpak-builder/rofiles");
   } catch (error) {
-    if (!(error instanceof Deno.errors.NotFound)) {
+    if (!isNotFoundError(error)) {
       throw error;
     }
+
+    entries = [];
   }
+
+  for (const entry of entries) {
+    spawnSync("fusermount3", ["-uz", `.flatpak-builder/rofiles/${entry}`], {
+      stdio: "ignore",
+    });
+  }
+
+  await rm(".flatpak-builder/rofiles", { recursive: true, force: true });
+}
+
+function isNotFoundError(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
 }
 
 await cleanupRofiles();
+await mkdir(buildDir, { recursive: true });
+await mkdir(pnpmHome, { recursive: true });
 
-await Deno.mkdir(buildDir, { recursive: true });
-await Deno.mkdir(denoDir, { recursive: true });
-
-const buildStatus = await new Deno.Command("flatpak", {
-  args: [
-    ...flatpakBuilder,
+const buildStatus = spawnSync(
+  "flatpak",
+  [
+    "run",
+    "--command=flatpak-builder",
+    "org.flatpak.Builder",
     "--system",
     "--assumeyes",
     "--disable-rofiles-fuse",
@@ -44,63 +50,48 @@ const buildStatus = await new Deno.Command("flatpak", {
     buildDir,
     manifest,
   ],
-  stdin: "inherit",
-  stdout: "inherit",
-  stderr: "inherit",
-}).spawn().status;
+  { stdio: "inherit" },
+);
 
-if (!buildStatus.success) {
-  Deno.exit(buildStatus.code);
+if (buildStatus.status !== 0) {
+  process.exit(buildStatus.status ?? 1);
 }
 
-const devProcess = new Deno.Command("flatpak", {
-  args: [
-    ...flatpakBuilder,
+const devProcess = spawn(
+  "flatpak",
+  [
+    "run",
+    "--command=flatpak-builder",
+    "org.flatpak.Builder",
     "--run",
     buildDir,
     manifest,
     "env",
-    `DENO_DIR=${denoDir}`,
-    "deno",
-    "run",
-    "-A",
-    "@gtkx/cli",
+    `PNPM_HOME=${pnpmHome}`,
+    "corepack",
+    "pnpm",
+    "exec",
+    "gtkx",
     "dev",
     "src/dev.tsx",
   ],
-  stdin: "inherit",
-  stdout: "inherit",
-  stderr: "inherit",
-}).spawn();
+  { stdio: "inherit" },
+);
 
-let shuttingDown = false;
-const stopDevProcess = () => {
-  if (shuttingDown) {
-    return;
-  }
+const stopDevProcess = (): boolean => devProcess.kill("SIGTERM");
 
-  shuttingDown = true;
-  try {
-    devProcess.kill("SIGTERM");
-  } catch {
-    // The process may already have exited.
-  }
-};
+process.once("SIGINT", stopDevProcess);
+process.once("SIGTERM", stopDevProcess);
+process.once("SIGHUP", stopDevProcess);
 
-Deno.addSignalListener("SIGINT", stopDevProcess);
-Deno.addSignalListener("SIGTERM", stopDevProcess);
-Deno.addSignalListener("SIGHUP", stopDevProcess);
-
-let devStatus: Deno.CommandStatus;
-try {
-  devStatus = await devProcess.status;
-} finally {
-  Deno.removeSignalListener("SIGINT", stopDevProcess);
-  Deno.removeSignalListener("SIGTERM", stopDevProcess);
-  Deno.removeSignalListener("SIGHUP", stopDevProcess);
+const devStatus = await new Promise<number>((resolve, reject): void => {
+  devProcess.once("error", reject);
+  devProcess.once("close", (code): void => resolve(code ?? 1));
+}).finally(async (): Promise<void> => {
+  process.off("SIGINT", stopDevProcess);
+  process.off("SIGTERM", stopDevProcess);
+  process.off("SIGHUP", stopDevProcess);
   await cleanupRofiles();
-}
+});
 
-if (!devStatus.success) {
-  Deno.exit(devStatus.code);
-}
+process.exit(devStatus);
