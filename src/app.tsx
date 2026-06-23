@@ -2,17 +2,16 @@ import { type ReactNode, useState } from "react";
 import * as Gtk from "@gtkx/ffi/gtk";
 import { GtkApplicationWindow, GtkBox, GtkButton, GtkLabel, quit } from "@gtkx/react";
 
-/** Root GTKX application component. */
+/**
+ * Root GTKX application component.
+ *
+ * @returns The GTKX application tree.
+ */
 export function App(): ReactNode {
   const [count, setCount] = useState(0);
 
   return (
-    <GtkApplicationWindow
-      title="Bootc Buddy"
-      defaultWidth={520}
-      defaultHeight={360}
-      onClose={quit}
-    >
+    <GtkApplicationWindow title="Bootc Buddy" defaultWidth={520} defaultHeight={360} onClose={quit}>
       <GtkBox
         orientation={Gtk.Orientation.VERTICAL}
         spacing={16}
@@ -22,10 +21,10 @@ export function App(): ReactNode {
         marginEnd={32}
       >
         <GtkLabel label="Bootc Buddy" cssClasses={["title-1"]} />
-        <GtkLabel label="GTKX is running through Deno with Vite HMR enabled." />
+        <GtkLabel label="GTKX is running through Node with Vite HMR enabled." />
         <GtkButton
           label={`GTKX counter: ${count}`}
-          onClicked={() => setCount((value: number) => value + 1)}
+          onClicked={(): void => setCount((value: number): number => value + 1)}
         />
       </GtkBox>
     </GtkApplicationWindow>

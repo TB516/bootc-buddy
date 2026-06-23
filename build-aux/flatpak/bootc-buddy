@@ -1,0 +1,2 @@
+#!/usr/bin/env sh
+exec /app/node/bin/node /app/share/bootc-buddy/dist/bundle.js "$@"

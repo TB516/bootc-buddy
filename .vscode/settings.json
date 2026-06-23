@@ -1,46 +1,25 @@
 {
-  "deno.enable": true,
-  "deno.disablePaths": [
-    "./.flatpak-build",
-    "./.flatpak-build-release",
-    "./.flatpak-builder",
-  ],
-  "editor.formatOnSave": true,
-  "deno.lint": false,
+  "editor.defaultFormatter": "oxc.oxc-vscode",
+  "editor.formatOnSave": false,
+  "editor.codeActionsOnSave": {
+    "source.format.oxc": "always",
+    "source.fixAll.oxc": "always"
+  },
+  "js/ts.experimental.useTsgo": true,
+  "npm.packageManager": "pnpm",
   "files.exclude": {
     "**/.flatpak-build": true,
     "**/.flatpak-build-release": true,
-    "**/.flatpak-builder": true,
+    "**/.flatpak-builder": true
   },
   "files.watcherExclude": {
     "**/.flatpak-build/**": true,
     "**/.flatpak-build-release/**": true,
-    "**/.flatpak-builder/**": true,
+    "**/.flatpak-builder/**": true
   },
   "search.exclude": {
     "**/.flatpak-build": true,
     "**/.flatpak-build-release": true,
-    "**/.flatpak-builder": true,
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[typescriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[javascript]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[javascriptreact]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[json]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "denoland.vscode-deno"
+    "**/.flatpak-builder": true
   }
 }

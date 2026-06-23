@@ -1,0 +1,43 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "import", "react", "jsdoc", "node"],
+  "env": {
+    "builtin": true,
+    "node": true
+  },
+  "ignorePatterns": [
+    "bin/**",
+    "dist/**",
+    "node_modules/**",
+    ".flatpak-build/**",
+    ".flatpak-build-release/**",
+    ".flatpak-builder*/**"
+  ],
+  "settings": {
+    "react": {
+      "version": "19.2.7"
+    },
+    "jsdoc": {
+      "mode": "typescript"
+    }
+  },
+  "rules": {
+    "jsdoc/check-property-names": "error",
+    "jsdoc/check-tag-names": "error",
+    "jsdoc/empty-tags": "error",
+    "jsdoc/implements-on-classes": "error",
+    "jsdoc/require-param": "error",
+    "jsdoc/require-param-description": "error",
+    "jsdoc/require-param-name": "error",
+    "jsdoc/require-param-type": "off",
+    "jsdoc/require-returns": "error",
+    "jsdoc/require-returns-type": "off",
+    "typescript/explicit-function-return-type": [
+      "error",
+      {
+        "allowHigherOrderFunctions": false,
+        "allowTypedFunctionExpressions": false
+      }
+    ]
+  }
+}
