@@ -19,15 +19,27 @@ finish-args:
   - --talk-name=org.freedesktop.Flatpak
 
 modules:
+  - name: node-corepack
+    buildsystem: simple
+    build-options:
+      build-args:
+        - --share=network
+      env:
+        COREPACK_HOME: /app/share/corepack
+    build-commands:
+      - /usr/lib/sdk/node24/install.sh
+      - mkdir -p /app/share/corepack
+      - corepack prepare pnpm@11.8.0 --activate
+
   - name: bootc-buddy
     buildsystem: simple
     build-options:
       build-args:
         - --share=network
       env:
+        COREPACK_HOME: /app/share/corepack
         PNPM_HOME: /run/build/bootc-buddy/.pnpm-home
     build-commands:
-      - /usr/lib/sdk/node24/install.sh
       - corepack pnpm install --frozen-lockfile
       - corepack pnpm compile
       - mkdir -p /app/share/bootc-buddy
