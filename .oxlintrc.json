@@ -32,12 +32,6 @@
     "jsdoc/require-param-type": "off",
     "jsdoc/require-returns": "error",
     "jsdoc/require-returns-type": "off",
-    "typescript/explicit-function-return-type": [
-      "error",
-      {
-        "allowHigherOrderFunctions": false,
-        "allowTypedFunctionExpressions": false
-      }
-    ]
+    "typescript/explicit-function-return-type": "error"
   }
 }
