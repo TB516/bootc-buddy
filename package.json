@@ -22,9 +22,9 @@
     "@types/node": "^24.10.2",
     "@types/react": "19.2.17",
     "@types/react-reconciler": "^0.33.0",
+    "@typescript/native-preview": "7.0.0-dev.20260622.1",
     "oxfmt": "0.55.0",
     "oxlint": "1.70.0",
-    "typescript": "rc",
     "vite": "8.0.16"
   },
   "packageManager": "pnpm@11.8.0"
