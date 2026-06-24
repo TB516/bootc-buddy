@@ -6,6 +6,7 @@
     "source.fixAll.oxc": "always"
   },
   "js/ts.experimental.useTsgo": true,
+  "typescript.native-preview.tsdk": "node_modules/.bin",
   "npm.packageManager": "pnpm",
   "files.exclude": {
     "**/.flatpak-build": true,
