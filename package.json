@@ -9,7 +9,7 @@
     "build": "node scripts/build.ts",
     "fmt": "oxfmt --write",
     "lint": "oxlint",
-    "check": "tsc --noEmit"
+    "check": "tsgo --noEmit"
   },
   "dependencies": {
     "@gtkx/ffi": "0.21.0",
