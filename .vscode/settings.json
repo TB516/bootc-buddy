@@ -6,6 +6,7 @@
     "source.fixAll.oxc": "always"
   },
   "js/ts.experimental.useTsgo": true,
+  "js/ts.tsserver.experimental.enableProjectDiagnostics": true,
   "typescript.native-preview.tsdk": "node_modules/.bin",
   "npm.packageManager": "pnpm",
   "files.exclude": {
