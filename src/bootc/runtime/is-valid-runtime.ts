@@ -9,7 +9,7 @@ import { nodeProcessLayer } from "./node-process-layer.ts";
 import {
   type CommandOutput,
   type HostCommandArgs,
-  runHostCommandEffect,
+  runHostCommand,
 } from "./run-host-command.ts";
 
 let validRuntime: Promise<boolean> | undefined;
@@ -23,12 +23,12 @@ let validRuntime: Promise<boolean> | undefined;
  *
  * @returns Whether the current runtime can execute the required host commands.
  */
-export const isValidRuntime = (): Promise<boolean> => {
-  validRuntime ??= Effect.runPromise(isValidRuntimeEffect.pipe(Effect.provide(nodeProcessLayer)));
+export const readRuntimeValidity = (): Promise<boolean> => {
+  validRuntime ??= Effect.runPromise(isValidRuntime.pipe(Effect.provide(nodeProcessLayer)));
   return validRuntime;
 };
 
-export const isValidRuntimeEffect: Effect.Effect<
+export const isValidRuntime: Effect.Effect<
   boolean,
   never,
   ChildProcessSpawner.ChildProcessSpawner
@@ -52,7 +52,7 @@ export const isValidRuntimeEffect: Effect.Effect<
 const commandStartedAndExitedZero = (
   args: HostCommandArgs,
 ): Effect.Effect<boolean, never, ChildProcessSpawner.ChildProcessSpawner> =>
-  runHostCommandEffect(args).pipe(
+  runHostCommand(args).pipe(
     Effect.map((output: CommandOutput): boolean => output.code === 0),
     Effect.catchTags({
       CommandNotFoundError: (_error: CommandNotFoundError) => Effect.succeed(false),

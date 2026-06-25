@@ -6,7 +6,7 @@ import {
   CommandPermissionDeniedError,
   CommandStartError,
 } from "../errors.ts";
-import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts";
+import { type CommandOutput, runHostCommand } from "./run-host-command.ts";
 
 /**
  * Run a `bootc` command as root through `pkexec`.
@@ -18,7 +18,7 @@ import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts"
  * @param args The arguments to pass to `bootc`.
  * @returns An Effect that captures successful command output or fails with a command error.
  */
-export const runBootcCommandEffect = (
+export const runBootcCommand = (
   args: readonly string[],
 ): Effect.Effect<
   CommandOutput,
@@ -27,7 +27,7 @@ export const runBootcCommandEffect = (
 > =>
   Effect.gen(function* () {
     const command = ["bootc", ...args] as const;
-    const output = yield* runHostCommandEffect(["pkexec", ...command]);
+    const output = yield* runHostCommand(["pkexec", ...command]);
 
     if (output.code !== 0) {
       return yield* new CommandExitError({

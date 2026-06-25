@@ -8,7 +8,7 @@ import {
   CommandStartError,
 } from "../errors.ts";
 import { type BootcCommandResult } from "../result.ts";
-import { runBootcCommandEffect } from "../runtime/run-bootc-command.ts";
+import { runBootcCommand } from "../runtime/run-bootc-command.ts";
 import { nodeProcessLayer } from "../runtime/node-process-layer.ts";
 import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
 
@@ -21,9 +21,9 @@ import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
  * @returns A result containing the parsed and validated bootc status response,
  *   or public error details when an expected command failure occurs.
  */
-export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
+export async function readBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
   return await Effect.runPromise(
-    getBootcStatusEffect.pipe(
+    getBootcStatus.pipe(
       Effect.match({
         onFailure: (cause): BootcCommandResult<BootcStatus> => ({
           ok: false,
@@ -44,7 +44,7 @@ export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>>
   );
 }
 
-export const getBootcStatusEffect: Effect.Effect<
+export const getBootcStatus: Effect.Effect<
   BootcStatus,
   | BootcInvalidResponseError
   | CommandExitError
@@ -53,7 +53,7 @@ export const getBootcStatusEffect: Effect.Effect<
   | CommandStartError,
   ChildProcessSpawner.ChildProcessSpawner
 > = Effect.gen(function* () {
-  const output = yield* runBootcCommandEffect(["status", "--format=json"]);
+  const output = yield* runBootcCommand(["status", "--format=json"]);
 
   const parsed = yield* Effect.try({
     try: (): unknown => JSON.parse(output.stdout) as unknown,
