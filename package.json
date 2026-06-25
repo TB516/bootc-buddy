@@ -5,8 +5,9 @@
   "exports": "./src/main.tsx",
   "scripts": {
     "dev": "node scripts/dev.ts",
-    "compile": "gtkx build src/main.tsx",
-    "build": "node scripts/build.ts",
+    "build": "gtkx build src/main.tsx",
+    "build:flatpak": "node scripts/build.ts",
+    "bundle:flatpak": "node scripts/bundle.ts",
     "fmt": "oxfmt --write",
     "lint": "oxlint",
     "check": "tsgo --noEmit"
