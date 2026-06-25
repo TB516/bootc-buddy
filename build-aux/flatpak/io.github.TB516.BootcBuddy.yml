@@ -32,7 +32,7 @@ modules:
       - mkdir -p /app/share/corepack
       - corepack install
       - corepack pnpm install --frozen-lockfile
-      - corepack pnpm compile
+      - corepack pnpm build
       - mkdir -p /app/share/bootc-buddy
       - cp -r dist /app/share/bootc-buddy/dist
       - install -Dm755 build-aux/flatpak/bootc-buddy /app/bin/bootc-buddy

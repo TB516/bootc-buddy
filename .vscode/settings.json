@@ -10,17 +10,23 @@
   "npm.packageManager": "pnpm",
   "files.exclude": {
     "**/.flatpak-build": true,
+    "**/.flatpak-build-bundle": true,
     "**/.flatpak-build-release": true,
-    "**/.flatpak-builder": true
+    "**/.flatpak-builder": true,
+    "**/.flatpak-repo": true
   },
   "files.watcherExclude": {
     "**/.flatpak-build/**": true,
+    "**/.flatpak-build-bundle/**": true,
     "**/.flatpak-build-release/**": true,
-    "**/.flatpak-builder/**": true
+    "**/.flatpak-builder/**": true,
+    "**/.flatpak-repo/**": true
   },
   "search.exclude": {
     "**/.flatpak-build": true,
+    "**/.flatpak-build-bundle": true,
     "**/.flatpak-build-release": true,
-    "**/.flatpak-builder": true
+    "**/.flatpak-builder": true,
+    "**/.flatpak-repo": true
   }
 }
