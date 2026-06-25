@@ -10,6 +10,7 @@
     "bundle:flatpak": "node scripts/bundle.ts",
     "fmt": "oxfmt --write",
     "lint": "oxlint",
+    "prepare": "effect-tsgo patch",
     "check": "tsgo --noEmit"
   },
   "dependencies": {
@@ -21,6 +22,7 @@
     "react": "19.2.7"
   },
   "devDependencies": {
+    "@effect/tsgo": "0.14.6",
     "@gtkx/cli": "0.21.0",
     "@types/node": "^24.10.2",
     "@types/react": "19.2.17",

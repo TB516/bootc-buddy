@@ -27,6 +27,9 @@ importers:
         specifier: 19.2.7
         version: 19.2.7
     devDependencies:
+      '@effect/tsgo':
+        specifier: 0.14.6
+        version: 0.14.6
       '@gtkx/cli':
         specifier: 0.21.0
         version: 0.21.0(@types/node@24.13.2)(react@19.2.7)(yaml@2.9.0)
@@ -67,6 +70,45 @@ packages:
     engines: {node: '>=18.0.0'}
     peerDependencies:
       effect: ^4.0.0-beta.84
+
+  '@effect/tsgo-darwin-arm64@0.14.6':
+    resolution: {integrity: sha512-/tEi3pAg7pnaJqfjNVmZfj6hjS2S9AejnOybwLsxtYTU8FtiQKPjInfEwJ/L6fqvLpWOlr0tFGlzZAclZq5YHw==}
+    cpu: [arm64]
+    os: [darwin]
+
+  '@effect/tsgo-darwin-x64@0.14.6':
+    resolution: {integrity: sha512-U7t83pVtQDsX69uSpVk/38/vTFy6Fv1prOWkYrKjYae5jIrLp0Nt78JBNLRihij/1azL/FB/QLJy9cpUqE3UKA==}
+    cpu: [x64]
+    os: [darwin]
+
+  '@effect/tsgo-linux-arm64@0.14.6':
+    resolution: {integrity: sha512-j5gpaGLMW3hOCf1Q+t0hu2ybxhS3t3drfKqw03m7SEh3hxzz2e9wYPYYgrAKNPXLllABpSUGc7dC9J+W6/LmLA==}
+    cpu: [arm64]
+    os: [linux]
+
+  '@effect/tsgo-linux-arm@0.14.6':
+    resolution: {integrity: sha512-Jdhb0at286S600hagPowQTQ5llz7L/QsuTMxAq7XVdGfThDEXeC7TMn4hej7H9RMhwEbi71AlKXO/5aiZv8JOw==}
+    cpu: [arm]
+    os: [linux]
+
+  '@effect/tsgo-linux-x64@0.14.6':
+    resolution: {integrity: sha512-5GO6PiaOoFRBYUHwJpL1S6qiKcppC7KNMFhlrn2/XRSlc32X4uEOq0CI5pqmJgWKT+hgRquQpXSgRqrCydDyNg==}
+    cpu: [x64]
+    os: [linux]
+
+  '@effect/tsgo-win32-arm64@0.14.6':
+    resolution: {integrity: sha512-CaIjQy0n+qWzAZn4dEtsB8kzOnIL/PUPPRNfWpyS0W3f+KxPeRO9zL6rER0wIjbnYT2IZRACsEdfCjApfqBZbg==}
+    cpu: [arm64]
+    os: [win32]
+
+  '@effect/tsgo-win32-x64@0.14.6':
+    resolution: {integrity: sha512-PBv4Ccll6dfkGr/1em530N0L51CNvHaNP1eYP+hWUJAmgBNM9s7NMeo8g5x4SSxQtxAA8b1/xBeVYN4KxwZGnA==}
+    cpu: [x64]
+    os: [win32]
+
+  '@effect/tsgo@0.14.6':
+    resolution: {integrity: sha512-Hp7VHUvCivcC9EOZG5OHNCYZceBLim/G9M40MQXA6abCVU0Jc1I+yDBV/fJHkYsDQ08uwsUAD/CGMaUduWQqDw==}
+    hasBin: true
 
   '@emnapi/core@1.10.0':
     resolution: {integrity: sha512-yq6OkJ4p82CAfPl0u9mQebQHKPJkY7WrIuk205cTYnYe+k2Z8YBh11FrbRG/H6ihirqcacOgl2BIO8oyMQLeXw==}
@@ -1374,6 +1416,37 @@ snapshots:
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
+
+  '@effect/tsgo-darwin-arm64@0.14.6':
+    optional: true
+
+  '@effect/tsgo-darwin-x64@0.14.6':
+    optional: true
+
+  '@effect/tsgo-linux-arm64@0.14.6':
+    optional: true
+
+  '@effect/tsgo-linux-arm@0.14.6':
+    optional: true
+
+  '@effect/tsgo-linux-x64@0.14.6':
+    optional: true
+
+  '@effect/tsgo-win32-arm64@0.14.6':
+    optional: true
+
+  '@effect/tsgo-win32-x64@0.14.6':
+    optional: true
+
+  '@effect/tsgo@0.14.6':
+    optionalDependencies:
+      '@effect/tsgo-darwin-arm64': 0.14.6
+      '@effect/tsgo-darwin-x64': 0.14.6
+      '@effect/tsgo-linux-arm': 0.14.6
+      '@effect/tsgo-linux-arm64': 0.14.6
+      '@effect/tsgo-linux-x64': 0.14.6
+      '@effect/tsgo-win32-arm64': 0.14.6
+      '@effect/tsgo-win32-x64': 0.14.6
 
   '@emnapi/core@1.10.0':
     dependencies:
