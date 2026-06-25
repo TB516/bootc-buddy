@@ -44,6 +44,7 @@ modules:
           - .flatpak-build
           - .flatpak-build-release
           - .flatpak-builder
+          - .flatpak-repo
           - .vscode
           - dist
           - node_modules
