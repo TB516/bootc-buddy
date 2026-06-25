@@ -65,6 +65,7 @@ const devProcess = spawn(
     "--command=flatpak-builder",
     "org.flatpak.Builder",
     "--run",
+    "--share=network",
     buildDir,
     manifest,
     "env",
