@@ -26,7 +26,7 @@ export interface CommandOutput {
  * @param args The host command and arguments to pass after `flatpak-spawn --host`.
  * @returns An Effect that starts the command and captures its output.
  */
-export const runHostCommandEffect = (
+export const runHostCommand = (
   args: HostCommandArgs,
 ): Effect.Effect<
   CommandOutput,

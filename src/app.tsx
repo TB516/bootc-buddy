@@ -12,8 +12,8 @@ import {
 import {
   type BootcCommandResult,
   type BootcStatus,
-  getBootcStatus,
-  isValidRuntime,
+  readBootcStatus,
+  readRuntimeValidity,
 } from "./bootc/mod.ts";
 
 type StatusViewState =
@@ -41,7 +41,7 @@ export function App(): ReactNode {
     setState({ kind: "loading" });
 
     try {
-      setState({ kind: "loaded", result: await getBootcStatus() });
+      setState({ kind: "loaded", result: await readBootcStatus() });
     } catch (error) {
       setState({ kind: "crashed", error });
     }
@@ -51,7 +51,7 @@ export function App(): ReactNode {
     setRuntimeState({ kind: "loading" });
 
     try {
-      setRuntimeState({ kind: "loaded", valid: await isValidRuntime() });
+      setRuntimeState({ kind: "loaded", valid: await readRuntimeValidity() });
     } catch (error) {
       setRuntimeState({ kind: "crashed", error });
     }
@@ -61,7 +61,7 @@ export function App(): ReactNode {
     let mounted = true;
 
     setState({ kind: "loading" });
-    getBootcStatus()
+    readBootcStatus()
       .then((result): void => {
         if (mounted) {
           setState({ kind: "loaded", result });
