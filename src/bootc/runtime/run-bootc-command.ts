@@ -18,16 +18,15 @@ import { type CommandOutput, runHostCommandEffect } from "./run-host-command.ts"
  * @param args The arguments to pass to `bootc`.
  * @returns An Effect that captures successful command output or fails with a command error.
  */
-export function runBootcCommandEffect(
+export const runBootcCommandEffect = (
   args: readonly string[],
 ): Effect.Effect<
   CommandOutput,
   CommandExitError | CommandNotFoundError | CommandPermissionDeniedError | CommandStartError,
   ChildProcessSpawner.ChildProcessSpawner
-> {
-  const command = ["bootc", ...args] as const;
-
-  return Effect.gen(function* () {
+> =>
+  Effect.gen(function* () {
+    const command = ["bootc", ...args] as const;
     const output = yield* runHostCommandEffect(["pkexec", ...command]);
 
     if (output.code !== 0) {
@@ -44,4 +43,3 @@ export function runBootcCommandEffect(
 
     return output;
   });
-}

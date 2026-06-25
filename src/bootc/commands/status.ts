@@ -23,7 +23,7 @@ import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
  */
 export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
   return await Effect.runPromise(
-    getBootcStatusEffect().pipe(
+    getBootcStatusEffect.pipe(
       Effect.match({
         onFailure: (cause): BootcCommandResult<BootcStatus> => ({
           ok: false,
@@ -44,7 +44,7 @@ export async function getBootcStatus(): Promise<BootcCommandResult<BootcStatus>>
   );
 }
 
-export function getBootcStatusEffect(): Effect.Effect<
+export const getBootcStatusEffect: Effect.Effect<
   BootcStatus,
   | BootcInvalidResponseError
   | CommandExitError
@@ -52,27 +52,25 @@ export function getBootcStatusEffect(): Effect.Effect<
   | CommandPermissionDeniedError
   | CommandStartError,
   ChildProcessSpawner.ChildProcessSpawner
-> {
-  return Effect.gen(function* () {
-    const output = yield* runBootcCommandEffect(["status", "--format=json"]);
+> = Effect.gen(function* () {
+  const output = yield* runBootcCommandEffect(["status", "--format=json"]);
 
-    const parsed = yield* Effect.try({
-      try: (): unknown => JSON.parse(output.stdout) as unknown,
-      catch: (cause): BootcInvalidResponseError =>
+  const parsed = yield* Effect.try({
+    try: (): unknown => JSON.parse(output.stdout) as unknown,
+    catch: (cause): BootcInvalidResponseError =>
+      new BootcInvalidResponseError({
+        message: "bootc status --format=json returned invalid JSON",
+        cause,
+      }),
+  });
+
+  return yield* Schema.decodeUnknownEffect(bootcStatusSchema)(parsed).pipe(
+    Effect.mapError(
+      (cause): BootcInvalidResponseError =>
         new BootcInvalidResponseError({
-          message: "bootc status --format=json returned invalid JSON",
+          message: "bootc status --format=json returned an unexpected response shape",
           cause,
         }),
-    });
-
-    return yield* Schema.decodeUnknownEffect(bootcStatusSchema)(parsed).pipe(
-      Effect.mapError(
-        (cause): BootcInvalidResponseError =>
-          new BootcInvalidResponseError({
-            message: "bootc status --format=json returned an unexpected response shape",
-            cause,
-          }),
-      ),
-    );
-  });
-}
+    ),
+  );
+});

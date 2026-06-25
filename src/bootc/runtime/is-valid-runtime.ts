@@ -23,38 +23,36 @@ let validRuntime: Promise<boolean> | undefined;
  *
  * @returns Whether the current runtime can execute the required host commands.
  */
-export function isValidRuntime(): Promise<boolean> {
-  validRuntime ??= Effect.runPromise(isValidRuntimeEffect().pipe(Effect.provide(nodeProcessLayer)));
+export const isValidRuntime = (): Promise<boolean> => {
+  validRuntime ??= Effect.runPromise(isValidRuntimeEffect.pipe(Effect.provide(nodeProcessLayer)));
   return validRuntime;
-}
+};
 
-export function isValidRuntimeEffect(): Effect.Effect<
+export const isValidRuntimeEffect: Effect.Effect<
   boolean,
   never,
   ChildProcessSpawner.ChildProcessSpawner
-> {
-  return Effect.gen(function* () {
-    const checks: readonly HostCommandArgs[] = [
-      ["true"],
-      ["pkexec", "--version"],
-      ["bootc", "--version"],
-    ];
+> = Effect.gen(function* () {
+  const checks: readonly HostCommandArgs[] = [
+    ["true"],
+    ["pkexec", "--version"],
+    ["bootc", "--version"],
+  ];
 
-    for (const args of checks) {
-      const succeeded = yield* commandStartedAndExitedZero(args);
-      if (!succeeded) {
-        return false;
-      }
+  for (const args of checks) {
+    const succeeded = yield* commandStartedAndExitedZero(args);
+    if (!succeeded) {
+      return false;
     }
+  }
 
-    return true;
-  });
-}
+  return true;
+});
 
-function commandStartedAndExitedZero(
+const commandStartedAndExitedZero = (
   args: HostCommandArgs,
-): Effect.Effect<boolean, never, ChildProcessSpawner.ChildProcessSpawner> {
-  return runHostCommandEffect(args).pipe(
+): Effect.Effect<boolean, never, ChildProcessSpawner.ChildProcessSpawner> =>
+  runHostCommandEffect(args).pipe(
     Effect.map((output: CommandOutput): boolean => output.code === 0),
     Effect.catchTags({
       CommandNotFoundError: (_error: CommandNotFoundError) => Effect.succeed(false),
@@ -62,4 +60,3 @@ function commandStartedAndExitedZero(
       CommandStartError: (_error: CommandStartError) => Effect.succeed(false),
     }),
   );
-}

@@ -26,51 +26,50 @@ export interface CommandOutput {
  * @param args The host command and arguments to pass after `flatpak-spawn --host`.
  * @returns An Effect that starts the command and captures its output.
  */
-export function runHostCommandEffect(
+export const runHostCommandEffect = (
   args: HostCommandArgs,
 ): Effect.Effect<
   CommandOutput,
   CommandNotFoundError | CommandPermissionDeniedError | CommandStartError,
   ChildProcessSpawner.ChildProcessSpawner
-> {
-  const command = ["flatpak-spawn", "--host", ...args] as const;
+> =>
+  Effect.gen(function* () {
+    const command = ["flatpak-spawn", "--host", ...args] as const;
 
-  return Effect.scoped(
-    Effect.gen(function* () {
-      const handle = yield* ChildProcess.make("flatpak-spawn", ["--host", ...args], {
-        stdin: "ignore",
-        stdout: "pipe",
-        stderr: "pipe",
-      });
+    return yield* Effect.scoped(
+      Effect.gen(function* () {
+        const handle = yield* ChildProcess.make("flatpak-spawn", ["--host", ...args], {
+          stdin: "ignore",
+          stdout: "pipe",
+          stderr: "pipe",
+        });
 
-      const [exitCode, stdout, stderr] = yield* Effect.all(
-        [handle.exitCode, collectOutput(handle.stdout), collectOutput(handle.stderr)],
-        { concurrency: "unbounded" },
-      );
+        const [exitCode, stdout, stderr] = yield* Effect.all(
+          [handle.exitCode, collectOutput(handle.stdout), collectOutput(handle.stderr)],
+          { concurrency: "unbounded" },
+        );
 
-      return {
-        code: Number(exitCode),
-        stdout: stdout.trim(),
-        stderr: stderr.trim(),
-      };
-    }),
-  ).pipe(Effect.mapError((cause) => commandStartError(command, cause)));
-}
+        return {
+          code: Number(exitCode),
+          stdout: stdout.trim(),
+          stderr: stderr.trim(),
+        };
+      }),
+    ).pipe(Effect.mapError((cause) => commandStartError(command, cause)));
+  });
 
-function collectOutput(
+const collectOutput = (
   stream: Stream.Stream<Uint8Array, PlatformError.PlatformError>,
-): Effect.Effect<string, PlatformError.PlatformError> {
-  return Stream.runCollect(stream).pipe(Effect.map(decodeChunks));
-}
+): Effect.Effect<string, PlatformError.PlatformError> =>
+  Stream.runCollect(stream).pipe(Effect.map(decodeChunks));
 
-function decodeChunks(chunks: ReadonlyArray<Uint8Array>): string {
-  return textDecoder.decode(Buffer.concat(chunks));
-}
+const decodeChunks = (chunks: ReadonlyArray<Uint8Array>): string =>
+  textDecoder.decode(Buffer.concat(chunks));
 
-function commandStartError(
+const commandStartError = (
   command: readonly string[],
   cause: PlatformError.PlatformError,
-): CommandNotFoundError | CommandPermissionDeniedError | CommandStartError {
+): CommandNotFoundError | CommandPermissionDeniedError | CommandStartError => {
   if (cause.reason._tag === "NotFound") {
     return new CommandNotFoundError({
       command,
@@ -94,4 +93,4 @@ function commandStartError(
     message: `${command.join(" ")} could not be started`,
     cause,
   });
-}
+};
