@@ -5,9 +5,10 @@ const appId = "io.github.TB516.BootcBuddy";
 const buildDir = ".flatpak-build-bundle";
 const manifest = "build-aux/flatpak/io.github.TB516.BootcBuddy.yml";
 const repoDir = ".flatpak-repo";
-const bundlePath = "bin/bootc-buddy.flatpak";
+const bundleDir = "bin";
+const bundlePath = `${bundleDir}/bootc-buddy.flatpak`;
 
-await mkdir("bin", { recursive: true });
+await mkdir(bundleDir, { recursive: true });
 await rm(bundlePath, { force: true });
 
 const buildStatus = spawnSync(
