@@ -6,11 +6,8 @@ const repoDir = ".flatpak-repo";
 const gpgSign = process.env.FLATPAK_GPG_SIGN;
 
 const status = spawnSync(
-  "flatpak",
+  "flatpak-builder",
   [
-    "run",
-    "--command=flatpak-builder",
-    "org.flatpak.Builder",
     "--system",
     "--assumeyes",
     "--disable-rofiles-fuse",

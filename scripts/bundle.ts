@@ -12,11 +12,8 @@ await mkdir(bundleDir, { recursive: true });
 await rm(bundlePath, { force: true });
 
 const buildStatus = spawnSync(
-  "flatpak",
+  "flatpak-builder",
   [
-    "run",
-    "--command=flatpak-builder",
-    "org.flatpak.Builder",
     "--system",
     "--assumeyes",
     "--disable-rofiles-fuse",
