@@ -37,11 +37,8 @@ await mkdir(buildDir, { recursive: true });
 await mkdir(pnpmHome, { recursive: true });
 
 const buildStatus = spawnSync(
-  "flatpak",
+  "flatpak-builder",
   [
-    "run",
-    "--command=flatpak-builder",
-    "org.flatpak.Builder",
     "--system",
     "--assumeyes",
     "--disable-rofiles-fuse",
@@ -59,11 +56,8 @@ if (buildStatus.status !== 0) {
 }
 
 const devProcess = spawn(
-  "flatpak",
+  "flatpak-builder",
   [
-    "run",
-    "--command=flatpak-builder",
-    "org.flatpak.Builder",
     "--run",
     "--share=network",
     buildDir,
