@@ -10,6 +10,12 @@ import {
 import { runBootcCommand } from "../runtime/run-bootc-command.ts";
 import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
 
+/**
+ * Read the current `bootc` status from the host system.
+ *
+ * The command runs as root through `pkexec bootc status --format=json`, then
+ * parses the JSON output into the application status schema.
+ */
 export const getBootcStatus: Effect.Effect<
   BootcStatus,
   | BootcInvalidResponseError

@@ -28,6 +28,12 @@ export const readRuntimeValidity = (): Promise<boolean> => {
   return validRuntime;
 };
 
+/**
+ * Check whether the required host commands can be started.
+ *
+ * Each command must be available through `flatpak-spawn --host` and exit with a
+ * zero status code. Command startup failures are converted into `false`.
+ */
 export const isValidRuntime: Effect.Effect<
   boolean,
   never,

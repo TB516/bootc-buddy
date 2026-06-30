@@ -11,6 +11,7 @@ import { Effect } from "effect";
 import { getBootcStatus } from "../bootc/commands/status.ts";
 import { nodeProcessLayer } from "../bootc/runtime/node-process-layer.ts";
 
+/** Snapshot of the latest `bootc status` request. */
 export type BootcStatusSnapshot =
   | {
       readonly state: "loading";
@@ -32,9 +33,22 @@ type BootcStatusContextValue = BootcStatusSnapshot & {
   readonly refreshStatus: () => Promise<void>;
 };
 
+type BootcStatusProviderProps = {
+  readonly children: ReactNode;
+};
+
 const BootcStatusContext = createContext<BootcStatusContextValue | null>(null);
 
-export function BootcStatusProvider({ children }: { readonly children: ReactNode }): ReactNode {
+/**
+ * Provide `bootc status` data to descendant components.
+ *
+ * The provider starts one status request on mount and exposes `refreshStatus`
+ * for manual reloads. Concurrent refresh calls share the same in-flight request.
+ *
+ * @param props Provider props.
+ * @returns The rendered context provider.
+ */
+export function BootcStatusProvider(props: BootcStatusProviderProps): ReactNode {
   const [snapshot, setSnapshot] = useState<BootcStatusSnapshot>({
     state: "loading",
     data: null,
@@ -84,9 +98,14 @@ export function BootcStatusProvider({ children }: { readonly children: ReactNode
     void refreshStatus();
   }, [refreshStatus]);
 
-  return <BootcStatusContext value={{ ...snapshot, refreshStatus }}>{children}</BootcStatusContext>;
+  return <BootcStatusContext value={{ ...snapshot, refreshStatus }}>{props.children}</BootcStatusContext>;
 }
 
+/**
+ * Read the current `bootc status` snapshot from context.
+ *
+ * @returns Current status snapshot and refresh callback.
+ */
 export function useBootcStatus(): BootcStatusContextValue {
   const context = useContext(BootcStatusContext);
 

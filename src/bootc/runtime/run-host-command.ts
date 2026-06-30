@@ -10,10 +10,13 @@ import {
 
 const textDecoder = new TextDecoder();
 
+/** Host command executable names accepted by `runHostCommand`. */
 export type HostCommand = "true" | "bootc" | "pkexec";
 
+/** Host command and arguments passed after `flatpak-spawn --host`. */
 export type HostCommandArgs = readonly [HostCommand, ...string[]];
 
+/** Captured exit code and output from a host command. */
 export interface CommandOutput {
   readonly code: number;
   readonly stdout: string;
