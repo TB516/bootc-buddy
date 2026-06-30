@@ -9,7 +9,7 @@
     "build:flatpak": "node scripts/build.ts",
     "bundle:flatpak": "node scripts/bundle.ts",
     "fmt": "oxfmt --write",
-    "lint": "oxlint",
+    "lint": "oxlint --fix src",
     "check": "tsgo --noEmit"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
     "@types/react": "19.2.17",
     "@types/react-reconciler": "^0.33.0",
     "@typescript/native-preview": "7.0.0-dev.20260622.1",
+    "eslint-plugin-jsdoc": "^63.0.10",
     "oxfmt": "0.55.0",
     "oxlint": "1.70.0",
     "vite": "8.0.16"

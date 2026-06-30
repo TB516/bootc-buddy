@@ -1,6 +1,7 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
   "plugins": ["eslint", "typescript", "import", "react", "jsdoc", "node"],
+  "jsPlugins": [{ "name": "jsdoc-js", "specifier": "eslint-plugin-jsdoc" }],
   "env": {
     "builtin": true,
     "node": true
@@ -32,6 +33,28 @@
     "jsdoc/require-param-type": "off",
     "jsdoc/require-returns": "error",
     "jsdoc/require-returns-type": "off",
+    "jsdoc-js/require-jsdoc": [
+      "error",
+      {
+        "contexts": [
+          "ExportDefaultDeclaration[declaration.type!='Identifier']",
+          "ExportNamedDeclaration[declaration.type='ClassDeclaration']",
+          "ExportNamedDeclaration[declaration.type='FunctionDeclaration']",
+          "ExportNamedDeclaration[declaration.type='TSEnumDeclaration']",
+          "ExportNamedDeclaration[declaration.type='TSInterfaceDeclaration']",
+          "ExportNamedDeclaration[declaration.type='TSTypeAliasDeclaration']",
+          "ExportNamedDeclaration[declaration.type='VariableDeclaration']"
+        ],
+        "publicOnly": true,
+        "require": {
+          "ArrowFunctionExpression": true,
+          "ClassDeclaration": true,
+          "ClassExpression": true,
+          "FunctionDeclaration": true,
+          "FunctionExpression": true
+        }
+      }
+    ],
     "typescript/explicit-function-return-type": "error"
   }
 }
