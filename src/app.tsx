@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useState } from "react";
+import { type ReactNode, useState } from "react";
 import * as Gtk from "@gtkx/ffi/gtk";
 import {
   GtkApplicationWindow,
@@ -9,18 +9,12 @@ import {
   GtkSeparator,
   quit,
 } from "@gtkx/react";
+import { type BootcStatus, readRuntimeValidity } from "./bootc/mod.ts";
 import {
-  type BootcCommandResult,
-  type BootcStatus,
-  readBootcStatus,
-  readRuntimeValidity,
-} from "./bootc/mod.ts";
-
-type StatusViewState =
-  | { readonly kind: "idle" }
-  | { readonly kind: "loading" }
-  | { readonly kind: "loaded"; readonly result: BootcCommandResult<BootcStatus> }
-  | { readonly kind: "crashed"; readonly error: unknown };
+  BootcStatusProvider,
+  type BootcStatusSnapshot,
+  useBootcStatus,
+} from "./context/bootc-status.tsx";
 
 type RuntimeViewState =
   | { readonly kind: "idle" }
@@ -34,18 +28,16 @@ type RuntimeViewState =
  * @returns The GTKX application tree.
  */
 export function App(): ReactNode {
-  const [state, setState] = useState<StatusViewState>({ kind: "idle" });
+  return (
+    <BootcStatusProvider>
+      <AppContent />
+    </BootcStatusProvider>
+  );
+}
+
+function AppContent(): ReactNode {
+  const bootcStatus = useBootcStatus();
   const [runtimeState, setRuntimeState] = useState<RuntimeViewState>({ kind: "idle" });
-
-  const refreshStatus = async (): Promise<void> => {
-    setState({ kind: "loading" });
-
-    try {
-      setState({ kind: "loaded", result: await readBootcStatus() });
-    } catch (error) {
-      setState({ kind: "crashed", error });
-    }
-  };
 
   const checkRuntime = async (): Promise<void> => {
     setRuntimeState({ kind: "loading" });
@@ -56,27 +48,6 @@ export function App(): ReactNode {
       setRuntimeState({ kind: "crashed", error });
     }
   };
-
-  useEffect((): (() => void) => {
-    let mounted = true;
-
-    setState({ kind: "loading" });
-    readBootcStatus()
-      .then((result): void => {
-        if (mounted) {
-          setState({ kind: "loaded", result });
-        }
-      })
-      .catch((error: unknown): void => {
-        if (mounted) {
-          setState({ kind: "crashed", error });
-        }
-      });
-
-    return (): void => {
-      mounted = false;
-    };
-  }, []);
 
   return (
     <GtkApplicationWindow title="Bootc Buddy" defaultWidth={760} defaultHeight={620} onClose={quit}>
@@ -97,10 +68,10 @@ export function App(): ReactNode {
             xalign={0}
           />
           <GtkButton
-            label={state.kind === "loading" ? "Checking..." : "Refresh status"}
-            sensitive={state.kind !== "loading"}
+            label={bootcStatus.state === "loading" ? "Checking..." : "Refresh status"}
+            sensitive={bootcStatus.state !== "loading"}
             onClicked={(): void => {
-              void refreshStatus();
+              void bootcStatus.refreshStatus();
             }}
           />
           <GtkButton
@@ -124,7 +95,7 @@ export function App(): ReactNode {
         <GtkScrolledWindow vexpand hexpand>
           <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={12} hexpand>
             <RuntimeSummary state={runtimeState} />
-            <StatusSummary state={state} />
+            <StatusSummary status={bootcStatus} />
           </GtkBox>
         </GtkScrolledWindow>
       </GtkBox>
@@ -179,13 +150,13 @@ function RuntimeSummary({ state }: { readonly state: RuntimeViewState }): ReactN
   );
 }
 
-function StatusSummary({ state }: { readonly state: StatusViewState }): ReactNode {
-  if (state.kind === "idle" || state.kind === "loading") {
+function StatusSummary({ status }: { readonly status: BootcStatusSnapshot }): ReactNode {
+  const { state, data, error } = status;
+
+  if (state === "loading") {
     return (
       <GtkLabel
-        label={
-          state.kind === "loading" ? "Running bootc status --format=json..." : "Not checked yet."
-        }
+        label="Running bootc status --format=json..."
         cssClasses={["dim-label"]}
         halign={Gtk.Align.START}
         xalign={0}
@@ -193,46 +164,34 @@ function StatusSummary({ state }: { readonly state: StatusViewState }): ReactNod
     );
   }
 
-  if (state.kind === "crashed") {
+  if (state === "error") {
     return (
       <StatusBlock
-        title="Unexpected UI error"
+        title={`bootc status failed: ${error._tag}`}
         tone="error"
-        body={formatUnknownError(state.error)}
+        body={safeStringify(error)}
       />
     );
   }
 
-  if (!state.result.ok) {
-    return (
-      <StatusBlock
-        title={`bootc status failed: ${state.result.error.name}`}
-        tone="error"
-        body={[state.result.message, "", "Error details:", safeStringify(state.result.error)].join(
-          "\n",
-        )}
-      />
-    );
-  }
-
-  const status = state.result.body;
+  const bootcStatus = data;
   const summary = [
-    `Host: ${status.metadata.name ?? "unknown"}`,
-    `Requested image: ${formatSpecImage(status)}`,
-    `Boot order: ${status.spec.bootOrder ?? "default"}`,
-    `Rollback queued: ${yesNo(status.status.rollbackQueued)}`,
-    `Usr overlay: ${formatOverlay(status.status.usrOverlay ?? null)}`,
+    `Host: ${bootcStatus.metadata.name ?? "unknown"}`,
+    `Requested image: ${formatSpecImage(bootcStatus)}`,
+    `Boot order: ${bootcStatus.spec.bootOrder ?? "default"}`,
+    `Rollback queued: ${yesNo(bootcStatus.status.rollbackQueued)}`,
+    `Usr overlay: ${formatOverlay(bootcStatus.status.usrOverlay ?? null)}`,
   ];
 
   return (
     <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={12} hexpand vexpand>
       <StatusBlock title="Status" tone="ok" body={summary.join("\n")} />
 
-      <DeploymentBlock label="Booted deployment" deployment={status.status.booted} />
-      <DeploymentBlock label="Staged deployment" deployment={status.status.staged} />
-      <DeploymentBlock label="Rollback deployment" deployment={status.status.rollback} />
+      <DeploymentBlock label="Booted deployment" deployment={bootcStatus.status.booted} />
+      <DeploymentBlock label="Staged deployment" deployment={bootcStatus.status.staged} />
+      <DeploymentBlock label="Rollback deployment" deployment={bootcStatus.status.rollback} />
 
-      <StatusBlock title="Raw bootc JSON" tone="neutral" body={safeStringify(status)} />
+      <StatusBlock title="Raw bootc JSON" tone="neutral" body={safeStringify(bootcStatus)} />
     </GtkBox>
   );
 }

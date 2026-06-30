@@ -7,42 +7,8 @@ import {
   CommandPermissionDeniedError,
   CommandStartError,
 } from "../errors.ts";
-import { type BootcCommandResult } from "../result.ts";
 import { runBootcCommand } from "../runtime/run-bootc-command.ts";
-import { nodeProcessLayer } from "../runtime/node-process-layer.ts";
 import { type BootcStatus, bootcStatusSchema } from "../schemas/status.ts";
-
-/**
- * Read the current bootc host status.
- *
- * Runs `bootc status --format=json`, parses the returned JSON, and validates
- * it against the expected status schema.
- *
- * @returns A result containing the parsed and validated bootc status response,
- *   or public error details when an expected command failure occurs.
- */
-export async function readBootcStatus(): Promise<BootcCommandResult<BootcStatus>> {
-  return await Effect.runPromise(
-    getBootcStatus.pipe(
-      Effect.match({
-        onFailure: (cause): BootcCommandResult<BootcStatus> => ({
-          ok: false,
-          message: cause.message,
-          error: {
-            name: cause._tag,
-            message: cause.message,
-            cause,
-          },
-        }),
-        onSuccess: (body): BootcCommandResult<BootcStatus> => ({
-          ok: true,
-          body,
-        }),
-      }),
-      Effect.provide(nodeProcessLayer),
-    ),
-  );
-}
 
 export const getBootcStatus: Effect.Effect<
   BootcStatus,
