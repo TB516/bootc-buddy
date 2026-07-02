@@ -4,7 +4,8 @@ import { mkdir, readdir, rm } from "node:fs/promises";
 const buildDir = ".flatpak-build";
 const manifest = "build-aux/flatpak/io.github.TB516.BootcBuddy.yml";
 const corepackHome = "/app/share/corepack";
-const pnpmHome = `${process.cwd()}/${buildDir}/pnpm-home`;
+const projectDir = process.cwd();
+const pnpmHome = `${projectDir}/${buildDir}/pnpm-home`;
 
 async function cleanupRofiles(): Promise<void> {
   let entries: string[];
@@ -60,11 +61,11 @@ const devProcess = spawn(
   [
     "--run",
     "--share=network",
+    `--filesystem=${projectDir}`,
+    `--env=COREPACK_HOME=${corepackHome}`,
+    `--env=PNPM_HOME=${pnpmHome}`,
     buildDir,
     manifest,
-    "env",
-    `COREPACK_HOME=${corepackHome}`,
-    `PNPM_HOME=${pnpmHome}`,
     "corepack",
     "pnpm",
     "exec",
