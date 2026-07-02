@@ -3,21 +3,16 @@ import * as Gtk from "@gtkx/ffi/gtk";
 import {
   GtkApplicationWindow,
   GtkBox,
-  GtkButton,
   GtkLabel,
   GtkScrolledWindow,
   GtkSeparator,
   quit,
 } from "@gtkx/react";
-import { type BootcStatus, readRuntimeValidity } from "../bootc/mod.ts";
-import { type BootcStatusSnapshot, useBootcStatus } from "../context/bootc-status.tsx";
-import { StatusBlock } from "../components/status-block.tsx";
-
-type RuntimeViewState =
-  | { readonly kind: "idle" }
-  | { readonly kind: "loading" }
-  | { readonly kind: "loaded"; readonly valid: boolean }
-  | { readonly kind: "crashed"; readonly error: unknown };
+import { readRuntimeValidity } from "../bootc/mod.ts";
+import { AppHeader } from "../components/app-header.tsx";
+import { BootcStatusSummary } from "../components/bootc-status-summary.tsx";
+import { RuntimeSummary, type RuntimeViewState } from "../components/runtime-summary.tsx";
+import { useBootcStatus } from "../context/bootc-status.tsx";
 
 /**
  * Main application screen.
@@ -38,6 +33,14 @@ export function MainPage(): ReactNode {
     }
   };
 
+  const refreshStatus = (): void => {
+    void bootcStatus.refreshStatus();
+  };
+
+  const checkRuntimeStatus = (): void => {
+    void checkRuntime();
+  };
+
   return (
     <GtkApplicationWindow title="Bootc Buddy" defaultWidth={760} defaultHeight={620} onClose={quit}>
       <GtkBox
@@ -48,29 +51,12 @@ export function MainPage(): ReactNode {
         marginStart={24}
         marginEnd={24}
       >
-        <GtkBox orientation={Gtk.Orientation.HORIZONTAL} spacing={12}>
-          <GtkLabel
-            label="Bootc Buddy"
-            cssClasses={["title-1"]}
-            halign={Gtk.Align.START}
-            hexpand
-            xalign={0}
-          />
-          <GtkButton
-            label={bootcStatus.state === "loading" ? "Checking..." : "Refresh status"}
-            sensitive={bootcStatus.state !== "loading"}
-            onClicked={(): void => {
-              void bootcStatus.refreshStatus();
-            }}
-          />
-          <GtkButton
-            label={runtimeState.kind === "loading" ? "Checking..." : "Check runtime"}
-            sensitive={runtimeState.kind !== "loading"}
-            onClicked={(): void => {
-              void checkRuntime();
-            }}
-          />
-        </GtkBox>
+        <AppHeader
+          isStatusLoading={bootcStatus.state === "loading"}
+          isRuntimeLoading={runtimeState.kind === "loading"}
+          onRefreshStatus={refreshStatus}
+          onCheckRuntime={checkRuntimeStatus}
+        />
 
         <GtkLabel
           label="Temporary bootc status test view"
@@ -84,177 +70,10 @@ export function MainPage(): ReactNode {
         <GtkScrolledWindow vexpand hexpand>
           <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={12} hexpand>
             <RuntimeSummary state={runtimeState} />
-            <StatusSummary status={bootcStatus} />
+            <BootcStatusSummary status={bootcStatus} />
           </GtkBox>
         </GtkScrolledWindow>
       </GtkBox>
     </GtkApplicationWindow>
   );
-}
-
-function RuntimeSummary({ state }: { readonly state: RuntimeViewState }): ReactNode {
-  if (state.kind === "idle") {
-    return (
-      <StatusBlock
-        title="Runtime check"
-        tone="neutral"
-        compact
-        body="Not checked yet. Use Check runtime to verify host command access."
-      />
-    );
-  }
-
-  if (state.kind === "loading") {
-    return (
-      <StatusBlock
-        title="Runtime check"
-        tone="neutral"
-        compact
-        body="Checking flatpak-spawn host access, pkexec, and bootc..."
-      />
-    );
-  }
-
-  if (state.kind === "crashed") {
-    return (
-      <StatusBlock
-        title="Runtime check crashed"
-        tone="error"
-        body={formatUnknownError(state.error)}
-      />
-    );
-  }
-
-  return (
-    <StatusBlock
-      title={state.valid ? "Runtime check: valid" : "Runtime check: invalid"}
-      tone={state.valid ? "ok" : "error"}
-      compact
-      body={
-        state.valid
-          ? "This runtime can execute the host commands needed for bootc."
-          : "This runtime cannot execute one or more required host commands. isValidRuntime() returned false."
-      }
-    />
-  );
-}
-
-function StatusSummary({ status }: { readonly status: BootcStatusSnapshot }): ReactNode {
-  const { state, data, error } = status;
-
-  if (state === "loading") {
-    return (
-      <GtkLabel
-        label="Running bootc status --format=json..."
-        cssClasses={["dim-label"]}
-        halign={Gtk.Align.START}
-        xalign={0}
-      />
-    );
-  }
-
-  if (state === "error") {
-    return (
-      <StatusBlock
-        title={`bootc status failed: ${error._tag}`}
-        tone="error"
-        body={safeStringify(error)}
-      />
-    );
-  }
-
-  const bootcStatus = data;
-  const summary = [
-    `Host: ${bootcStatus.metadata.name ?? "unknown"}`,
-    `Requested image: ${formatSpecImage(bootcStatus)}`,
-    `Boot order: ${bootcStatus.spec.bootOrder ?? "default"}`,
-    `Rollback queued: ${yesNo(bootcStatus.status.rollbackQueued)}`,
-    `Usr overlay: ${formatOverlay(bootcStatus.status.usrOverlay ?? null)}`,
-  ];
-
-  return (
-    <GtkBox orientation={Gtk.Orientation.VERTICAL} spacing={12} hexpand vexpand>
-      <StatusBlock title="Status" tone="ok" body={summary.join("\n")} />
-
-      <DeploymentBlock label="Booted deployment" deployment={bootcStatus.status.booted} />
-      <DeploymentBlock label="Staged deployment" deployment={bootcStatus.status.staged} />
-      <DeploymentBlock label="Rollback deployment" deployment={bootcStatus.status.rollback} />
-
-      <StatusBlock title="Raw bootc JSON" tone="neutral" body={safeStringify(bootcStatus)} />
-    </GtkBox>
-  );
-}
-
-function DeploymentBlock({
-  label,
-  deployment,
-}: {
-  readonly label: string;
-  readonly deployment: BootcStatus["status"]["booted"];
-}): ReactNode {
-  if (deployment === null) {
-    return <StatusBlock title={label} tone="neutral" body="None reported." />;
-  }
-
-  const image = deployment.image;
-  const rows = [
-    `Image: ${image?.image.image ?? "unknown"}`,
-    `Transport: ${image?.image.transport ?? "unknown"}`,
-    `Digest: ${image?.imageDigest ?? "unknown"}`,
-    `Architecture: ${image?.architecture ?? "unknown"}`,
-    `Version: ${image?.version ?? "unknown"}`,
-    `Timestamp: ${image?.timestamp ?? "unknown"}`,
-    `Pinned: ${yesNo(deployment.pinned)}`,
-    `Incompatible: ${yesNo(deployment.incompatible)}`,
-    `Soft reboot capable: ${formatMaybeBoolean(deployment.softRebootCapable)}`,
-    `Cached update: ${deployment.cachedUpdate?.image.image ?? "none"}`,
-  ];
-
-  return (
-    <StatusBlock
-      title={label}
-      tone={deployment.incompatible ? "warning" : "neutral"}
-      body={rows.join("\n")}
-    />
-  );
-}
-
-function formatSpecImage(status: BootcStatus): string {
-  if (status.spec.image === null) {
-    return "none";
-  }
-
-  return `${status.spec.image.transport}:${status.spec.image.image}`;
-}
-
-function formatOverlay(overlay: BootcStatus["status"]["usrOverlay"]): string {
-  if (overlay === null || overlay === undefined) {
-    return "none";
-  }
-
-  return `${overlay.accessMode}, ${overlay.persistence}`;
-}
-
-function yesNo(value: boolean): string {
-  return value ? "yes" : "no";
-}
-
-function formatMaybeBoolean(value: boolean | undefined): string {
-  return value === undefined ? "unknown" : yesNo(value);
-}
-
-function formatUnknownError(error: unknown): string {
-  if (error instanceof Error) {
-    return `${error.name}: ${error.message}\n\n${error.stack ?? "No stack trace available."}`;
-  }
-
-  return safeStringify(error);
-}
-
-function safeStringify(value: unknown): string {
-  try {
-    return JSON.stringify(value, null, 2) ?? String(value);
-  } catch {
-    return String(value);
-  }
 }
