@@ -31,10 +31,8 @@ if (buildStatus.status !== 0) {
   process.exit(buildStatus.status ?? 1);
 }
 
-const bundleStatus = spawnSync(
-  "flatpak",
-  ["build-bundle", repoDir, bundlePath, appId, "master"],
-  { stdio: "inherit" },
-);
+const bundleStatus = spawnSync("flatpak", ["build-bundle", repoDir, bundlePath, appId, "master"], {
+  stdio: "inherit",
+});
 
 process.exit(bundleStatus.status ?? 1);

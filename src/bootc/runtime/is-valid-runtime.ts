@@ -6,11 +6,7 @@ import {
   CommandStartError,
 } from "../errors.ts";
 import { nodeProcessLayer } from "./node-process-layer.ts";
-import {
-  type CommandOutput,
-  type HostCommandArgs,
-  runHostCommand,
-} from "./run-host-command.ts";
+import { type CommandOutput, type HostCommandArgs, runHostCommand } from "./run-host-command.ts";
 
 let validRuntime: Promise<boolean> | undefined;
 

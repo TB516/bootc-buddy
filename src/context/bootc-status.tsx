@@ -98,7 +98,9 @@ export function BootcStatusProvider(props: BootcStatusProviderProps): ReactNode 
     void refreshStatus();
   }, [refreshStatus]);
 
-  return <BootcStatusContext value={{ ...snapshot, refreshStatus }}>{props.children}</BootcStatusContext>;
+  return (
+    <BootcStatusContext value={{ ...snapshot, refreshStatus }}>{props.children}</BootcStatusContext>
+  );
 }
 
 /**
